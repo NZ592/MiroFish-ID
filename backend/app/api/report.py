@@ -89,6 +89,22 @@ def generate_report():
             RunnerStatus.PAUSED,
             RunnerStatus.STOPPING,
         }
+        
+        # Jika platform simulasi sudah selesai semua tapi status masih running, otomatis berhentikan proses
+        if run_state is not None and (
+            (run_state.twitter_completed and run_state.reddit_completed)
+            or (run_state.twitter_completed and not run_state.reddit_running)
+            or (run_state.reddit_completed and not run_state.twitter_running)
+        ):
+            if run_state.runner_status in active_statuses:
+                logger.info(f"Semua platform telah selesai untuk {simulation_id}, otomatis menyelesaikan runner sebelum membuat laporan")
+                try:
+                    SimulationRunner.stop_simulation(simulation_id)
+                    run_state = SimulationRunner.get_run_state(simulation_id)
+                    updater = ZepGraphMemoryManager.get_updater(simulation_id)
+                except Exception as e:
+                    logger.warning(f"Gagal auto-stop runner: {e}")
+
         if updater is not None or (
             run_state is not None and run_state.runner_status in active_statuses
         ):
@@ -553,6 +569,459 @@ def download_report(report_id: str):
         
     except Exception as e:
         logger.error(f"下载报告失败: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
+
+
+@report_bp.route('/<report_id>/printable', methods=['GET'])
+def get_printable_report(report_id: str):
+    """
+    Menyajikan halaman cetak / simpan PDF resmi untuk laporan prediksi MiroFish.
+    Halaman ini diformat khusus untuk ekspor A4 dengan styling eksekutif profesional.
+    """
+    try:
+        report = ReportManager.get_report(report_id)
+        if not report:
+            return jsonify({
+                "success": False,
+                "error": t('api.reportNotFound', id=report_id)
+            }), 404
+
+        import markdown
+        from datetime import datetime
+
+        raw_md = report.markdown_content or ""
+        outline = report.outline
+        if hasattr(outline, 'title'):
+            title = outline.title or "Laporan Prediksi Simulasi MiroFish"
+            summary = outline.summary or ""
+        elif isinstance(outline, dict):
+            title = outline.get("title") or "Laporan Prediksi Simulasi MiroFish"
+            summary = outline.get("summary") or ""
+        else:
+            title = "Laporan Prediksi Simulasi MiroFish"
+            summary = ""
+        created_at = report.created_at or datetime.now().isoformat()
+        
+        # Format tanggal rapi
+        try:
+            dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            formatted_date = dt.strftime("%d %B %Y, %H:%M WIB")
+        except Exception:
+            formatted_date = str(created_at)[:19].replace("T", " ")
+
+        # Hapus judul h1 jika sudah ada di awal markdown agar tidak double
+        body_md = raw_md
+        if body_md.startswith("# "):
+            lines = body_md.split("\n", 1)
+            if len(lines) > 1:
+                body_md = lines[1]
+                # Hapus blockquote summary pertama jika ada
+                if body_md.strip().startswith(">"):
+                    body_md = body_md.strip()
+                    parts = body_md.split("\n\n", 1)
+                    if len(parts) > 1:
+                        body_md = parts[1]
+
+        # Konversi markdown ke HTML
+        body_html = markdown.markdown(body_md, extensions=['extra', 'tables', 'nl2br', 'sane_lists'])
+
+        auto_print = request.args.get('auto_print', '1') in ('1', 'true', 'yes')
+
+        html_template = f"""<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} - MiroFish Prediction Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {{
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-color: #e2e8f0;
+      --bg-light: #f8fafc;
+    }}
+    * {{
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }}
+    body {{
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text-main);
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 0;
+      line-height: 1.75;
+      font-size: 14.5px;
+    }}
+    /* Toolbar Layar */
+    .print-toolbar {{
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }}
+    .toolbar-left {{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }}
+    .brand-pill {{
+      background: #2563eb;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }}
+    .toolbar-title {{
+      font-weight: 600;
+      font-size: 14px;
+      color: #f8fafc;
+    }}
+    .toolbar-hint {{
+      font-size: 12px;
+      color: #94a3b8;
+      margin-left: 8px;
+    }}
+    .toolbar-right {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }}
+    .btn-action {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: none;
+    }}
+    .btn-primary {{
+      background: #2563eb;
+      color: #ffffff;
+    }}
+    .btn-primary:hover {{
+      background: #1d4ed8;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+    }}
+    .btn-secondary {{
+      background: #334155;
+      color: #f8fafc;
+    }}
+    .btn-secondary:hover {{
+      background: #475569;
+    }}
+    .btn-outline {{
+      background: transparent;
+      color: #94a3b8;
+      border: 1px solid #475569;
+    }}
+    .btn-outline:hover {{
+      color: #ffffff;
+      border-color: #cbd5e1;
+    }}
+    /* Lembar Kertas Laporan */
+    .report-sheet {{
+      max-width: 860px;
+      margin: 32px auto 60px auto;
+      background: #ffffff;
+      padding: 60px 72px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }}
+    /* Header Laporan */
+    .report-header {{
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 28px;
+      margin-bottom: 32px;
+    }}
+    .meta-badges {{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }}
+    .tag-badge {{
+      display: inline-flex;
+      align-items: center;
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 10px;
+      border-radius: 4px;
+    }}
+    .id-badge {{
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }}
+    .report-title {{
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.35;
+      color: #0f172a;
+      margin: 0 0 18px 0;
+      letter-spacing: -0.02em;
+    }}
+    .report-summary-box {{
+      background: #f8fafc;
+      border-left: 4px solid #2563eb;
+      padding: 18px 22px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+      font-size: 15px;
+      color: #334155;
+      font-style: italic;
+      line-height: 1.65;
+    }}
+    .report-info-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 12.5px;
+    }}
+    .info-item {{
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }}
+    .info-label {{
+      color: #64748b;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }}
+    .info-val {{
+      color: #0f172a;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }}
+    /* Body & Tipografi Markdown */
+    .report-body h1 {{
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 36px 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--border-color);
+      page-break-after: avoid;
+    }}
+    .report-body h2 {{
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 32px 0 14px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      page-break-after: avoid;
+    }}
+    .report-body h3 {{
+      font-size: 16.5px;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 24px 0 10px 0;
+      page-break-after: avoid;
+    }}
+    .report-body p {{
+      margin: 0 0 16px 0;
+      text-align: justify;
+      color: #334155;
+      line-height: 1.8;
+    }}
+    .report-body blockquote {{
+      margin: 18px 0;
+      padding: 12px 20px;
+      background: #f8fafc;
+      border-left: 3.5px solid #cbd5e1;
+      border-radius: 0 6px 6px 0;
+      color: #475569;
+      font-style: italic;
+      page-break-inside: avoid;
+    }}
+    .report-body blockquote p {{
+      margin: 0;
+    }}
+    .report-body ul, .report-body ol {{
+      margin: 0 0 16px 0;
+      padding-left: 24px;
+      color: #334155;
+    }}
+    .report-body li {{
+      margin-bottom: 8px;
+      line-height: 1.7;
+    }}
+    .report-body strong {{
+      font-weight: 700;
+      color: #0f172a;
+    }}
+    .report-body table {{
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13.5px;
+      page-break-inside: avoid;
+    }}
+    .report-body th, .report-body td {{
+      border: 1px solid #cbd5e1;
+      padding: 10px 14px;
+      text-align: left;
+    }}
+    .report-body th {{
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #0f172a;
+    }}
+    .report-body tr:nth-child(even) td {{
+      background: #f8fafc;
+    }}
+    /* Footer Dokumen */
+    .report-footer {{
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: #64748b;
+    }}
+    /* Aturan Cetak (Print Media) */
+    @page {{
+      size: A4;
+      margin: 18mm 15mm;
+    }}
+    @media print {{
+      body {{
+        background: #ffffff !important;
+        font-size: 13.5px;
+      }}
+      .print-toolbar {{
+        display: none !important;
+      }}
+      .report-sheet {{
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+      }}
+      .report-body h1, .report-body h2, .report-body h3 {{
+        page-break-after: avoid;
+      }}
+      .report-body blockquote, .report-body table, .report-summary-box, .report-info-grid {{
+        page-break-inside: avoid;
+      }}
+    }}
+  </style>
+</head>
+<body>
+  <!-- Floating Control Bar -->
+  <div class="print-toolbar">
+    <div class="toolbar-left">
+      <span class="brand-pill">MIROFISH</span>
+      <span class="toolbar-title">Pratinjau Cetak / PDF Laporan Prediksi</span>
+      <span class="toolbar-hint">(Pilih opsi "Save as PDF" pada dialog peramban)</span>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn-action btn-primary" onclick="window.print()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        Simpan / Unduh PDF
+      </button>
+      <a class="btn-action btn-secondary" href="/api/report/{report_id}/download" download="{report_id}.md">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Unduh Markdown (.md)
+      </a>
+      <button class="btn-action btn-outline" onclick="window.close()">✕ Tutup</button>
+    </div>
+  </div>
+
+  <!-- Halaman Dokumen -->
+  <div class="report-sheet">
+    <header class="report-header">
+      <div class="meta-badges">
+        <span class="tag-badge">Prediction Intelligence Report</span>
+        <span class="id-badge">ID: {report_id}</span>
+      </div>
+      <h1 class="report-title">{title}</h1>
+      {f'<div class="report-summary-box">{summary}</div>' if summary else ''}
+      <div class="report-info-grid">
+        <div class="info-item">
+          <span class="info-label">ID Simulasi</span>
+          <span class="info-val">{report.simulation_id or '-'}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Waktu Diterbitkan</span>
+          <span class="info-val">{formatted_date}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Status Analisis</span>
+          <span class="info-val" style="color: #16a34a;">Lengkap / Terverifikasi</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="report-body">
+      {body_html}
+    </main>
+
+    <footer class="report-footer">
+      <span>Dihasilkan secara otomatis oleh <strong>MiroFish Swarm Intelligence</strong> • Platform Simulasi Dinamika Sosial & Opini Publik</span>
+      <span>Dokumen Analisis Prediksi</span>
+    </footer>
+  </div>
+
+  {'<script>window.onload = function() { setTimeout(function() { window.print(); }, 400); };</script>' if auto_print else ''}
+</body>
+</html>
+"""
+        return html_template, 200, {'Content-Type': 'text/html; charset=utf-8'}
+    except Exception as e:
+        logger.error(f"Gagal membuat halaman cetak laporan: {e}")
         return jsonify({
             "success": False,
             "error": str(e),

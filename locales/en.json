@@ -30,7 +30,34 @@
     "description": "MiroFish - Social Media Opinion Simulation System"
   },
   "nav": {
-    "visitGithub": "Visit our Github page"
+    "visitGithub": "Visit our Github page",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "System & AI Model Settings",
+    "tabLLM": "AI Models & API",
+    "tabMemory": "Memory / Graph Engine",
+    "tabPreferences": "Time & Region Preferences",
+    "providerPreset": "Popular AI Provider Presets",
+    "selectProvider": "-- Select AI Provider --",
+    "baseUrl": "API Base URL",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "Enter API Key (e.g., sk-...)",
+    "primaryModel": "Primary Model (Smart / Report / KOL)",
+    "secondaryModel": "Secondary Model (Fast / Casual Netizens)",
+    "secondaryModelHint": "Optional. If left blank, the system will use the Primary Model.",
+    "testConnection": "Test API Connection",
+    "testing": "Testing connection...",
+    "testSuccess": "Connection Successful! Model is ready.",
+    "testFailed": "Connection Failed: {error}",
+    "saveSuccess": "Settings saved successfully!",
+    "saveError": "Failed to save settings: {error}",
+    "memoryMode": "Graph Memory Engine Mode",
+    "memoryLocal": "Standalone Local (Free, No Zep Cloud, Offline-Ready)",
+    "memoryZep": "Zep Cloud (Cloud GraphRAG)",
+    "zepApiKey": "Zep Cloud API Key (ZEP_API_KEY)",
+    "timezone": "Simulation Timezone",
+    "saveSettings": "Save Settings"
   },
   "home": {
     "tagline": "Concise & Universal Swarm Intelligence Engine",
@@ -208,6 +235,8 @@
     "generatingReportBtn": "Starting..."
   },
   "step4": {
+    "downloadPdf": "Download PDF",
+    "downloadMd": "Download MD",
     "generatingSection": "Generating {title}...",
     "goToInteraction": "Enter Deep Interaction",
     "waitingForReportAgent": "Waiting for Report Agent...",
@@ -253,7 +282,8 @@
     "interactiveTools": "Interactive Tools",
     "agentsAvailable": "{count} agents available",
     "chatWithReportAgent": "Chat with Report Agent",
-    "chatWithAgent": "Chat with any individual in the world",
+    "chatWithAgent": "Select Agent to Chat",
+    "searchAgent": "Search agent name or role...",
     "selectChatTarget": "Select chat target",
     "sendSurvey": "Send survey to the world",
     "reportAgentChat": "Report Agent - Chat",

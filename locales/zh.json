@@ -30,7 +30,34 @@
     "description": "MiroFish - 社交媒体舆论模拟系统"
   },
   "nav": {
-    "visitGithub": "访问我们的Github主页"
+    "visitGithub": "访问我们的Github主页",
+    "settings": "设置"
+  },
+  "settings": {
+    "title": "系统与 AI 模型设置",
+    "tabLLM": "AI 模型与 API",
+    "tabMemory": "图谱记忆引擎",
+    "tabPreferences": "时间与区域偏好",
+    "providerPreset": "常用 AI 服务商预设",
+    "selectProvider": "-- 选择 AI 服务商 --",
+    "baseUrl": "API Base URL",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "输入 API Key (例如 sk-...)",
+    "primaryModel": "主模型 (高智商 / 报告 / KOL)",
+    "secondaryModel": "辅助模型 (极速低成本 / 普通网民)",
+    "secondaryModelHint": "可选。留空则全部使用主模型。",
+    "testConnection": "测试 API 连通性",
+    "testing": "正在测试连通性...",
+    "testSuccess": "连接成功！模型已就绪。",
+    "testFailed": "连接失败: {error}",
+    "saveSuccess": "设置保存成功！",
+    "saveError": "保存设置失败: {error}",
+    "memoryMode": "图谱记忆引擎模式",
+    "memoryLocal": "本地独立模式 (免费, 无需 Zep, 离线可用)",
+    "memoryZep": "Zep Cloud (云端 GraphRAG)",
+    "zepApiKey": "Zep Cloud API Key (ZEP_API_KEY)",
+    "timezone": "模拟时区",
+    "saveSettings": "保存设置"
   },
   "home": {
     "tagline": "简洁通用的群体智能引擎",
@@ -208,6 +235,8 @@
     "generatingReportBtn": "启动中..."
   },
   "step4": {
+    "downloadPdf": "下载 PDF",
+    "downloadMd": "下载 MD",
     "generatingSection": "正在生成{title}...",
     "goToInteraction": "进入深度互动",
     "waitingForReportAgent": "Waiting for Report Agent...",
@@ -253,7 +282,8 @@
     "interactiveTools": "Interactive Tools",
     "agentsAvailable": "{count} agents available",
     "chatWithReportAgent": "与Report Agent对话",
-    "chatWithAgent": "与世界中任意个体对话",
+    "chatWithAgent": "选择智能体对话",
+    "searchAgent": "搜索智能体名称或职业...",
     "selectChatTarget": "选择对话对象",
     "sendSurvey": "发送问卷调查到世界中",
     "reportAgentChat": "Report Agent - Chat",

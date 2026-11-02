@@ -489,6 +489,19 @@ const stopPolling = () => {
 const prevTwitterRound = ref(0)
 const prevRedditRound = ref(0)
 
+// 检查所有启用的平台是否已完成
+const checkPlatformsCompleted = (data) => {
+  if (!data) return false
+  const twitterCompleted = data.twitter_completed === true
+  const redditCompleted = data.reddit_completed === true
+  const twitterEnabled = (data.twitter_actions_count > 0) || data.twitter_running || twitterCompleted
+  const redditEnabled = (data.reddit_actions_count > 0) || data.reddit_running || redditCompleted
+  if (!twitterEnabled && !redditEnabled) return false
+  if (twitterEnabled && !twitterCompleted) return false
+  if (redditEnabled && !redditCompleted) return false
+  return true
+}
+
 const fetchRunStatus = async () => {
   if (!props.simulationId) return
   
@@ -512,11 +525,10 @@ const fetchRunStatus = async () => {
       }
       
       // 检测模拟是否已完成（通过 runner_status 或平台完成状态判断）
-      const isCompleted = data.runner_status === 'completed' || data.runner_status === 'stopped'
+      const isPlatformsFinished = checkPlatformsCompleted(data)
+      const isCompleted = data.runner_status === 'completed' || data.runner_status === 'stopped' || isPlatformsFinished
       const isFailed = data.runner_status === 'failed'
       
-      // runner_status is authoritative because the backend only publishes a
-      // terminal state after the Zep ingestion barrier has completed.
       if (isFailed) {
         addLog(t('log.simFailed') + (data.error ? `: ${data.error}` : ''))
         phase.value = 2
@@ -532,30 +544,6 @@ const fetchRunStatus = async () => {
   } catch (err) {
     console.warn('获取运行状态失败:', err)
   }
-}
-
-// 检查所有启用的平台是否已完成
-const checkPlatformsCompleted = (data) => {
-  // 如果没有任何平台数据，返回 false
-  if (!data) return false
-  
-  // 检查各平台的完成状态
-  const twitterCompleted = data.twitter_completed === true
-  const redditCompleted = data.reddit_completed === true
-  
-  // 如果至少有一个平台完成了，检查是否所有启用的平台都完成了
-  // 通过 actions_count 判断平台是否被启用（如果 count > 0 或 running 曾为 true）
-  const twitterEnabled = (data.twitter_actions_count > 0) || data.twitter_running || twitterCompleted
-  const redditEnabled = (data.reddit_actions_count > 0) || data.reddit_running || redditCompleted
-  
-  // 如果没有任何平台被启用，返回 false
-  if (!twitterEnabled && !redditEnabled) return false
-  
-  // 检查所有启用的平台是否都已完成
-  if (twitterEnabled && !twitterCompleted) return false
-  if (redditEnabled && !redditCompleted) return false
-  
-  return true
 }
 
 const fetchRunStatusDetail = async () => {
@@ -657,6 +645,15 @@ const handleNextStep = async () => {
   addLog(t('log.startingReportGen'))
   
   try {
+    // Pastikan jika status runner masih running namun platform sudah selesai, panggil stopSimulation terlebih dahulu
+    if (runStatus.value?.runner_status === 'running') {
+      try {
+        await stopSimulation({ simulation_id: props.simulationId })
+      } catch (stopErr) {
+        console.warn('Auto stop simulation error:', stopErr)
+      }
+    }
+
     const res = await generateReport({
       simulation_id: props.simulationId,
       force_regenerate: true
@@ -688,11 +685,44 @@ watch(() => props.systemLogs?.length, () => {
   })
 })
 
-onMounted(() => {
+onMounted(async () => {
   addLog(t('log.step3Init'))
-  if (props.simulationId) {
-    doStartSimulation()
+  if (!props.simulationId) return
+
+  try {
+    const res = await getRunStatus(props.simulationId)
+    if (res.success && res.data) {
+      const data = res.data
+      runStatus.value = data
+      
+      const isPlatformsFinished = checkPlatformsCompleted(data)
+      const isCompleted = data.runner_status === 'completed' || data.runner_status === 'stopped' || isPlatformsFinished
+      const isFailed = data.runner_status === 'failed'
+
+      if (isFailed) {
+        phase.value = 2
+        emit('update-status', 'error')
+        fetchRunStatusDetail()
+        return
+      } else if (isCompleted) {
+        addLog(t('log.simCompleted'))
+        phase.value = 2
+        emit('update-status', 'completed')
+        fetchRunStatusDetail()
+        return
+      } else if (data.runner_status === 'running') {
+        phase.value = 1
+        emit('update-status', 'processing')
+        startStatusPolling()
+        startDetailPolling()
+        return
+      }
+    }
+  } catch (err) {
+    console.warn('Gagal memuat status simulasi yang ada:', err)
   }
+
+  doStartSimulation()
 })
 
 onUnmounted(() => {

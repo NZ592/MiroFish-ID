@@ -429,10 +429,8 @@ class ZepToolsService:
     
     def __init__(self, api_key: Optional[str] = None, llm_client: Optional[LLMClient] = None):
         self.api_key = api_key or Config.ZEP_API_KEY
-        if not self.api_key:
-            raise ValueError("ZEP_API_KEY 未配置")
-        
-        self.client = get_zep_client(self.api_key)
+        self.is_local = (Config.MEMORY_MODE == 'local') or (not self.api_key)
+        self.client = None if self.is_local else get_zep_client(self.api_key)
         # LLM客户端用于InsightForge生成子问题
         self._llm_client = llm_client
         logger.info(t("console.zepToolsInitialized"))
@@ -478,6 +476,17 @@ class ZepToolsService:
         """
         logger.info(t("console.graphSearch", graphId=graph_id, query=query[:50]))
         
+        if self.is_local or (graph_id and graph_id.startswith("local_")):
+            from .local_graph_service import LocalGraphService
+            res = LocalGraphService().search(graph_id, query, limit)
+            return SearchResult(
+                facts=res["facts"],
+                edges=res["edges"],
+                nodes=res["nodes"],
+                query=query,
+                total_count=res["total_count"]
+            )
+
         zep_query = normalize_zep_search_query(query)
         zep_limit = normalize_zep_search_limit(limit)
 

@@ -52,6 +52,7 @@ mytest/
 # 日志文件
 backend/logs/
 *.log
+.pids
 
 # 上传文件
 backend/uploads/

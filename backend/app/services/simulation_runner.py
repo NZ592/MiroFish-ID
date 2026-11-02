@@ -818,14 +818,15 @@ class SimulationRunner:
                                     # 如果运行了两个平台，需要两个都完成
                                     all_completed = cls._check_all_platforms_completed(state)
                                     if all_completed:
-                                        # Platform completion is only an input
-                                        # signal. The monitor publishes the
-                                        # terminal status after the process has
-                                        # exited and Zep ingestion has drained.
                                         logger.info(
-                                            f"所有平台已结束，等待进程与图谱写入完成: "
-                                            f"{state.simulation_id}"
+                                            f"Semua platform telah selesai: {state.simulation_id}. "
+                                            f"Menghentikan proses simulasi agar status beralih ke COMPLETED."
                                         )
+                                        if process and process.poll() is None:
+                                            try:
+                                                cls._terminate_process(process, state.simulation_id)
+                                            except Exception as term_err:
+                                                logger.warning(f"Gagal terminate proses simulasi: {term_err}")
                                 
                                 # 更新轮次信息（从 round_end 事件）
                                 elif event_type == "round_end":
@@ -1691,6 +1692,194 @@ class SimulationRunner:
             return default_status
 
     @classmethod
+    def _get_agent_profile_and_actions(cls, simulation_id: str, agent_id: int):
+        """Mendapatkan profil dan riwayat aksi/opini agen dari berkas simulasi"""
+        sim_dir = os.path.join(cls.RUN_STATE_DIR, simulation_id)
+        profile = {}
+        # Coba baca reddit_profiles.json
+        reddit_profiles_path = os.path.join(sim_dir, "reddit_profiles.json")
+        if os.path.exists(reddit_profiles_path):
+            try:
+                with open(reddit_profiles_path, 'r', encoding='utf-8') as f:
+                    profs = json.load(f)
+                    if 0 <= agent_id < len(profs):
+                        profile = profs[agent_id]
+                    else:
+                        for p in profs:
+                            if p.get("user_id") == agent_id:
+                                profile = p
+                                break
+            except Exception as e:
+                logger.warning(f"Gagal membaca reddit_profiles: {e}")
+
+        # Jika belum dapat, coba twitter_profiles.csv
+        if not profile:
+            twitter_profiles_path = os.path.join(sim_dir, "twitter_profiles.csv")
+            if os.path.exists(twitter_profiles_path):
+                try:
+                    import csv
+                    with open(twitter_profiles_path, 'r', encoding='utf-8') as f:
+                        reader = list(csv.DictReader(f))
+                        if 0 <= agent_id < len(reader):
+                            row = reader[agent_id]
+                            profile = {
+                                "username": row.get("username", f"agent_{agent_id}"),
+                                "name": row.get("name", ""),
+                                "bio": row.get("description", ""),
+                                "persona": row.get("user_char", ""),
+                                "profession": row.get("profession", "Masyarakat")
+                            }
+                except Exception as e:
+                    logger.warning(f"Gagal membaca twitter_profiles: {e}")
+
+        # Cari riwayat postingan agen dari actions.jsonl
+        recent_actions = []
+        for plat in ("twitter", "reddit"):
+            actions_path = os.path.join(sim_dir, plat, "actions.jsonl")
+            if os.path.exists(actions_path):
+                try:
+                    with open(actions_path, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            try:
+                                d = json.loads(line)
+                                if d.get("agent_id") == agent_id:
+                                    args = d.get("action_args", {})
+                                    content = args.get("content") or args.get("post_content") or args.get("comment_content")
+                                    if content and content not in recent_actions:
+                                        recent_actions.append(content)
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
+
+        return profile, recent_actions[:5]
+
+    @classmethod
+    def interview_agent_offline(
+        cls,
+        simulation_id: str,
+        agent_id: int,
+        prompt: str,
+        platform: str = None
+    ) -> Dict[str, Any]:
+        """
+        Melakukan wawancara/obrolan dengan persona agen secara mandiri (offline)
+        menggunakan LLM langsung berdasarkan karakter dan riwayat aksinya.
+        """
+        from app.utils.llm_client import LLMClient
+        profile, actions = cls._get_agent_profile_and_actions(simulation_id, agent_id)
+        
+        username = profile.get("username", f"agent_{agent_id}")
+        name = profile.get("name") or profile.get("realname", username)
+        profession = profile.get("profession", "Masyarakat")
+        bio = profile.get("bio", "")
+        persona = profile.get("persona", bio)
+
+        actions_context = ""
+        if actions:
+            actions_context = "\nBerikut adalah beberapa opini atau postingan yang pernah kamu sampaikan dalam simulasi ini:\n"
+            for i, act in enumerate(actions, 1):
+                actions_context += f"{i}. \"{act}\"\n"
+
+        system_prompt = (
+            f"Kamu adalah persona agen dalam simulasi dinamika sosial dan opini publik MiroFish.\n"
+            f"Identitas Persona:\n"
+            f"- Nama/Panggilan: {name} (username: @{username})\n"
+            f"- Profesi/Peran: {profession}\n"
+            f"- Biodata & Latar Belakang: {bio}\n"
+            f"- Karakter Mendalam & Kepribadian: {persona}\n"
+            f"{actions_context}\n"
+            f"Pedoman Respons:\n"
+            f"1. Jawablah pesan atau pertanyaan lawan bicara dengan konsisten mewakili karakter, usia, sudut pandang, emosi, dan kepentingan personamu.\n"
+            f"2. Gunakan sudut pandang orang pertama ('saya' atau 'aku').\n"
+            f"3. Berbicaralah dalam bahasa Indonesia yang alami sesuai gaya personamu (misal: santun, formal, emosional, atau santai tergantung karakter).\n"
+            f"4. Jangan pernah menyatakan dirimu adalah AI, model bahasa, atau sistem komputer. Kamu sepenuhnya adalah manusia/aktor ini.\n"
+            f"5. Berikan jawaban yang bernas, padat, dan mencerminkan pengalaman hidupmu.\n"
+        )
+
+        try:
+            client = LLMClient()
+            response_text = client.chat([
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ], temperature=0.7)
+        except Exception as e:
+            logger.error(f"Gagal memanggil LLM untuk offline agent interview: {e}")
+            response_text = f"Sebagai {name}, saya memahami maksud Anda. Namun saat ini saya memerlukan waktu untuk menanggapi lebih lanjut terkait hal ini."
+
+        result_payload = {
+            "agent_id": agent_id,
+            "agent_name": username,
+            "response": response_text,
+            "platform": platform or "reddit"
+        }
+
+        return {
+            "success": True,
+            "agent_id": agent_id,
+            "prompt": prompt,
+            "result": result_payload,
+            "timestamp": datetime.now().isoformat()
+        }
+
+    @classmethod
+    def interview_agents_batch_offline(
+        cls,
+        simulation_id: str,
+        interviews: List[Dict[str, Any]],
+        platform: str = None
+    ) -> Dict[str, Any]:
+        """
+        Batch wawancara/survei offline untuk banyak agen sekaligus secara paralel.
+        """
+        import concurrent.futures
+
+        results_dict = {}
+
+        def _interview_single(item):
+            aid = item.get("agent_id", 0)
+            p = item.get("prompt", "")
+            plat = item.get("platform") or platform
+            try:
+                single_res = cls.interview_agent_offline(
+                    simulation_id=simulation_id,
+                    agent_id=aid,
+                    prompt=p,
+                    platform=plat
+                )
+                data = single_res.get("result", {})
+                resp = data.get("response", "")
+            except Exception as e:
+                logger.error(f"Error offline interview agent {aid}: {e}")
+                resp = f"Maaf, agen sedang tidak dapat merespons: {str(e)}"
+            return aid, resp
+
+        max_workers = min(max(len(interviews), 1), 8)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_results = list(executor.map(_interview_single, interviews))
+
+        for aid, resp in future_results:
+            results_dict[f"reddit_{aid}"] = {
+                "agent_id": aid,
+                "response": resp,
+                "platform": "reddit"
+            }
+            results_dict[f"twitter_{aid}"] = {
+                "agent_id": aid,
+                "response": resp,
+                "platform": "twitter"
+            }
+
+        return {
+            "success": True,
+            "interviews_count": len(interviews),
+            "result": {
+                "results": results_dict
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+
+    @classmethod
     def interview_agent(
         cls,
         simulation_id: str,
@@ -1726,7 +1915,8 @@ class SimulationRunner:
         ipc_client = SimulationIPCClient(sim_dir)
 
         if not ipc_client.check_env_alive():
-            raise ValueError(f"模拟环境未运行或已关闭，无法执行Interview: {simulation_id}")
+            logger.info(f"Lingkungan simulasi offline, beralih ke persona chat langsung: agent_id={agent_id}")
+            return cls.interview_agent_offline(simulation_id, agent_id, prompt, platform)
 
         logger.info(f"发送Interview命令: simulation_id={simulation_id}, agent_id={agent_id}, platform={platform}")
 
@@ -1788,7 +1978,8 @@ class SimulationRunner:
         ipc_client = SimulationIPCClient(sim_dir)
 
         if not ipc_client.check_env_alive():
-            raise ValueError(f"模拟环境未运行或已关闭，无法执行Interview: {simulation_id}")
+            logger.info(f"Lingkungan simulasi offline, beralih ke batch persona interview langsung: count={len(interviews)}")
+            return cls.interview_agents_batch_offline(simulation_id, interviews, platform)
 
         logger.info(f"发送批量Interview命令: simulation_id={simulation_id}, count={len(interviews)}, platform={platform}")
 

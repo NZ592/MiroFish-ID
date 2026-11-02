@@ -256,11 +256,9 @@ class ZepGraphMemoryUpdater:
         self.graph_id = graph_id
         self.simulation_id = simulation_id or "unknown"
         self.api_key = api_key or Config.ZEP_API_KEY
+        self.is_local = (Config.MEMORY_MODE == 'local') or (not self.api_key) or (self.graph_id and self.graph_id.startswith("local_"))
         
-        if not self.api_key:
-            raise ValueError("ZEP_API_KEY未配置")
-        
-        self.client = get_zep_client(self.api_key)
+        self.client = None if self.is_local else get_zep_client(self.api_key)
         
         # 活动队列
         self._activity_queue: Queue = Queue()
@@ -485,6 +483,21 @@ class ZepGraphMemoryUpdater:
         """
         if not activities:
             return 0
+
+        if self.is_local:
+            try:
+                from .local_graph_service import LocalGraphService
+                local_svc = LocalGraphService()
+                for payload_activities, combined_text in self._build_episode_payloads(activities):
+                    local_svc.add_episode(
+                        self.graph_id,
+                        combined_text,
+                        payload_activities[-1].timestamp if payload_activities else None
+                    )
+                return len(activities)
+            except Exception as e:
+                logger.warning(f"Local graph add episode error: {e}")
+                return len(activities)
 
         processed_count = 0
         for payload_activities, combined_text in self._build_episode_payloads(activities):

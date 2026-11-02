@@ -21,6 +21,9 @@
       </div>
 
       <div class="header-right">
+        <button class="settings-btn" @click="showSettings = true" :title="$t('settings.title')">
+          ⚙️
+        </button>
         <LanguageSwitcher />
         <div class="step-divider"></div>
         <div class="workflow-step">
@@ -73,6 +76,9 @@
         />
       </div>
     </main>
+
+    <!-- 系统与模型设置弹窗 -->
+    <SettingsModal v-model:visible="showSettings" />
   </div>
 </template>
 
@@ -83,6 +89,7 @@ import { useI18n } from 'vue-i18n'
 import GraphPanel from '../components/GraphPanel.vue'
 import Step1GraphBuild from '../components/Step1GraphBuild.vue'
 import Step2EnvSetup from '../components/Step2EnvSetup.vue'
+import SettingsModal from '../components/SettingsModal.vue'
 import { generateOntology, getProject, buildGraph, getTaskStatus, getGraphData } from '../api/graph'
 import { getPendingUpload, clearPendingUpload } from '../store/pendingUpload'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
@@ -90,6 +97,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 const route = useRoute()
 const router = useRouter()
 const { t, tm } = useI18n()
+const showSettings = ref(false)
 
 // Layout State
 const viewMode = ref('split') // graph | split | workbench
@@ -494,6 +502,25 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.settings-btn {
+  background: transparent;
+  color: #333;
+  border: 1px solid #CCC;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.settings-btn:hover {
+  background: #EEE;
+  border-color: #0284C7;
+  color: #0284C7;
 }
 
 .workflow-step {

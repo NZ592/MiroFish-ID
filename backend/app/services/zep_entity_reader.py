@@ -79,10 +79,8 @@ class ZepEntityReader:
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or Config.ZEP_API_KEY
-        if not self.api_key:
-            raise ValueError("ZEP_API_KEY 未配置")
-        
-        self.client = get_zep_client(self.api_key)
+        self.is_local = (Config.MEMORY_MODE == 'local') or (not self.api_key)
+        self.client = None if self.is_local else get_zep_client(self.api_key)
     
     def _call_with_retry(
         self, 
@@ -120,6 +118,10 @@ class ZepEntityReader:
         Returns:
             节点列表
         """
+        if self.is_local or (graph_id and graph_id.startswith("local_")):
+            from .local_graph_service import LocalGraphService
+            return LocalGraphService().get_nodes(graph_id)
+
         logger.info(f"获取图谱 {graph_id} 的所有节点...")
 
         nodes = fetch_all_nodes(self.client, graph_id)
@@ -147,6 +149,10 @@ class ZepEntityReader:
         Returns:
             边列表
         """
+        if self.is_local or (graph_id and graph_id.startswith("local_")):
+            from .local_graph_service import LocalGraphService
+            return LocalGraphService().get_edges(graph_id)
+
         logger.info(f"获取图谱 {graph_id} 的所有边...")
 
         edges = fetch_all_edges(self.client, graph_id)

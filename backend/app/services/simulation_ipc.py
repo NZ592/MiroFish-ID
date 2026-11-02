@@ -271,7 +271,7 @@ class SimulationIPCClient:
         """
         检查模拟环境是否存活
         
-        通过检查 env_status.json 文件来判断
+        通过检查 env_status.json 和 run_state.json 文件来判断
         """
         status_file = os.path.join(self.simulation_dir, "env_status.json")
         if not os.path.exists(status_file):
@@ -280,7 +280,21 @@ class SimulationIPCClient:
         try:
             with open(status_file, 'r', encoding='utf-8') as f:
                 status = json.load(f)
-            return status.get("status") == "alive"
+            if status.get("status") != "alive":
+                return False
+            
+            # 检查 run_state.json 如果模拟已处于终止状态，则环境不再可用
+            run_state_file = os.path.join(self.simulation_dir, "run_state.json")
+            if os.path.exists(run_state_file):
+                try:
+                    with open(run_state_file, 'r', encoding='utf-8') as rf:
+                        rs = json.load(rf)
+                    if rs.get("runner_status") in ("stopped", "completed", "failed"):
+                        return False
+                except Exception:
+                    pass
+
+            return True
         except (json.JSONDecodeError, OSError):
             return False
 

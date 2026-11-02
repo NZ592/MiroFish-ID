@@ -979,22 +979,7 @@ const fetchConfigRealtime = async () => {
     if (res.success && res.data) {
       const data = res.data
 
-      if (data.status === 'failed' || data.error) {
-        handlePrepareFailure(data.error)
-        return
-      }
-      
-      // 输出配置生成阶段日志（避免重复）
-      if (data.generation_stage && data.generation_stage !== lastLoggedConfigStage) {
-        lastLoggedConfigStage = data.generation_stage
-        if (data.generation_stage === 'generating_profiles') {
-          addLog(t('log.generatingAgentProfileConfig'))
-        } else if (data.generation_stage === 'generating_config') {
-          addLog(t('log.generatingLLMConfig'))
-        }
-      }
-      
-      // 如果配置已生成
+      // 如果配置已生成，直接视为准备成功
       if (data.config_generated && data.config) {
         simulationConfig.value = data.config
         addLog(t('log.configComplete'))
@@ -1024,6 +1009,12 @@ const fetchConfigRealtime = async () => {
         phase.value = 4
         addLog(t('log.envSetupComplete'))
         emit('update-status', 'completed')
+        return
+      }
+
+      if (data.status === 'failed' || data.error) {
+        handlePrepareFailure(data.error)
+        return
       }
     }
   } catch (err) {
@@ -1045,11 +1036,6 @@ const loadPreparedData = async () => {
     if (res.success && res.data) {
       const configState = res.data
 
-      if (configState.status === 'failed' || configState.error) {
-        handlePrepareFailure(configState.error)
-        return
-      }
-
       if (configState.config_generated && configState.config) {
         simulationConfig.value = configState.config
         addLog(t('log.configLoadSuccess'))
@@ -1064,6 +1050,9 @@ const loadPreparedData = async () => {
         addLog(t('log.envSetupComplete'))
         phase.value = 4
         emit('update-status', 'completed')
+      } else if (configState.status === 'failed' || configState.error) {
+        handlePrepareFailure(configState.error)
+        return
       } else if (configState.is_generating) {
         addLog(t('log.configGenerating'))
         startConfigPolling()

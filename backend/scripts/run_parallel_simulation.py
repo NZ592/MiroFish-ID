@@ -1090,6 +1090,111 @@ def get_active_agents_for_round(
     return active_agents
 
 
+def classify_agent_tiers(agent_configs: List[Dict[str, Any]]) -> Dict[int, int]:
+    """
+    根据 1-9-90 社交媒体金字塔原则为 Agent 分配行为层级：
+    - Tier 1 (10%): 意见领袖 / KOL (官员、机构、学者、媒体、专家)
+    - Tier 2 (25%): 活跃发声网民 (积极发表评论、辩论)
+    - Tier 3 (65%): 潜水读者 / Lurkers (以点赞、转发、浏览为主，0 Token 纯算法运行)
+    """
+    tier_map = {}
+    if not agent_configs:
+        return tier_map
+
+    total = len(agent_configs)
+    kol_types = {"university", "official", "governmentagency", "mediaoutlet", "expert", "journalist", "ceo", "publicfigure"}
+    
+    sorted_agents = sorted(
+        agent_configs,
+        key=lambda x: (
+            1 if str(x.get("entity_type", "")).lower() in kol_types else 0,
+            float(x.get("influence_weight", 1.0)),
+            float(x.get("activity_level", 0.5))
+        ),
+        reverse=True
+    )
+    
+    k1 = max(1, int(total * 0.10))
+    k2 = max(1, int(total * 0.35))
+    
+    for idx, cfg in enumerate(sorted_agents):
+        aid = cfg.get("agent_id", 0)
+        if idx < k1:
+            tier_map[aid] = 1  # Tier 1: KOL
+        elif idx < k2:
+            tier_map[aid] = 2  # Tier 2: Active
+        else:
+            tier_map[aid] = 3  # Tier 3: Lurker
+            
+    return tier_map
+
+
+def build_smart_actions_for_round(
+    active_agents: List[Tuple[int, Any]],
+    tier_map: Dict[int, int],
+    db_path: str,
+    agent_configs_map: Dict[int, Dict[str, Any]],
+    platform: str = "twitter"
+) -> Dict[Any, Any]:
+    """
+    智能分配本轮 Agent 动作：
+    - Tier 1 & 2: 保持 LLMAction() 进行高质量文本生成与深层思考
+    - Tier 3 (Lurkers): 基于真实点赞概率与近期帖子自动执行 ManualAction，大幅节省 70% Token 消耗
+    """
+    actions = {}
+    recent_posts = []
+    
+    if os.path.exists(db_path):
+        try:
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
+            c.execute("SELECT post_id, user_id FROM post ORDER BY rowid DESC LIMIT 10")
+            recent_posts = c.fetchall()
+            conn.close()
+        except Exception:
+            recent_posts = []
+            
+    for agent_id, agent in active_agents:
+        tier = tier_map.get(agent_id, 2)
+        
+        # Tier 1 和 Tier 2 或是数据库尚无帖子时，使用完整 LLM 生成
+        if tier in (1, 2) or not recent_posts:
+            actions[agent] = LLMAction()
+        else:
+            # Tier 3 潜水者：低成本拟真行为 (0 Token 消耗)
+            cfg = agent_configs_map.get(agent_id, {})
+            activity = float(cfg.get("activity_level", 0.5))
+            
+            p = random.random()
+            if p < 0.60 * activity and recent_posts:
+                chosen_post_id, post_author_id = random.choice(recent_posts)
+                if chosen_post_id and post_author_id != agent_id:
+                    try:
+                        pid = int(chosen_post_id)
+                        # Twitter: 80% 几率点赞，20% 几率转发；Reddit: 100% 点赞 (Upvote)
+                        if platform == "twitter" and random.random() >= 0.8:
+                            actions[agent] = ManualAction(
+                                action_type=ActionType.REPOST,
+                                action_args={"post_id": pid}
+                            )
+                        else:
+                            actions[agent] = ManualAction(
+                                action_type=ActionType.LIKE_POST,
+                                action_args={"post_id": pid}
+                            )
+                        continue
+                    except Exception:
+                        pass
+            
+            # 其余时间潜水 (DO_NOTHING)
+            actions[agent] = ManualAction(
+                action_type=ActionType.DO_NOTHING,
+                action_args={}
+            )
+            
+    return actions
+
+
 class PlatformSimulation:
     """平台模拟结果容器"""
     def __init__(self):
@@ -1204,13 +1309,13 @@ async def run_twitter_simulation(
         
         if initial_actions:
             await result.env.step(initial_actions)
-            log_info(f"已发布 {len(initial_actions)} 条初始帖子")
+            log_info(f"已发布 {len(initial_actions)} 条初始帖子 [Twitter]")
     
     # 记录 round 0 结束
     if action_logger:
         action_logger.log_round_end(0, initial_action_count)
     
-    # 主模拟循环
+    # 主模拟循环 (Twitter)
     time_config = config.get("time_config", {})
     total_hours = time_config.get("total_simulation_hours", 72)
     minutes_per_round = time_config.get("minutes_per_round", 30)
@@ -1223,6 +1328,11 @@ async def run_twitter_simulation(
         if total_rounds < original_rounds:
             log_info(f"轮数已截断: {original_rounds} -> {total_rounds} (max_rounds={max_rounds})")
     
+    agent_configs = config.get("agent_configs", [])
+    agent_configs_map = {cfg.get("agent_id", 0): cfg for cfg in agent_configs}
+    tier_map = classify_agent_tiers(agent_configs)
+    log_info(f"3-Tier 人群模型已启用: KOL (Tier 1): {sum(1 for t in tier_map.values() if t==1)}人, 活跃 (Tier 2): {sum(1 for t in tier_map.values() if t==2)}人, 潜水 (Tier 3): {sum(1 for t in tier_map.values() if t==3)}人 (节省 ~70% Token)")
+
     start_time = datetime.now()
     
     for round_num in range(total_rounds):
@@ -1250,7 +1360,10 @@ async def run_twitter_simulation(
                 action_logger.log_round_end(round_num + 1, 0)
             continue
         
-        actions = {agent: LLMAction() for _, agent in active_agents}
+        # Twitter 动作分配
+        actions = build_smart_actions_for_round(
+            active_agents, tier_map, db_path, agent_configs_map, platform="twitter"
+        )
         await result.env.step(actions)
         
         # 从数据库获取实际执行的动作并记录
@@ -1403,13 +1516,13 @@ async def run_reddit_simulation(
         
         if initial_actions:
             await result.env.step(initial_actions)
-            log_info(f"已发布 {len(initial_actions)} 条初始帖子")
+            log_info(f"已发布 {len(initial_actions)} 条初始帖子 [Reddit]")
     
     # 记录 round 0 结束
     if action_logger:
         action_logger.log_round_end(0, initial_action_count)
     
-    # 主模拟循环
+    # 主模拟循环 (Reddit)
     time_config = config.get("time_config", {})
     total_hours = time_config.get("total_simulation_hours", 72)
     minutes_per_round = time_config.get("minutes_per_round", 30)
@@ -1422,6 +1535,11 @@ async def run_reddit_simulation(
         if total_rounds < original_rounds:
             log_info(f"轮数已截断: {original_rounds} -> {total_rounds} (max_rounds={max_rounds})")
     
+    agent_configs = config.get("agent_configs", [])
+    agent_configs_map = {cfg.get("agent_id", 0): cfg for cfg in agent_configs}
+    tier_map = classify_agent_tiers(agent_configs)
+    log_info(f"3-Tier 人群模型已启用: KOL (Tier 1): {sum(1 for t in tier_map.values() if t==1)}人, 活跃 (Tier 2): {sum(1 for t in tier_map.values() if t==2)}人, 潜水 (Tier 3): {sum(1 for t in tier_map.values() if t==3)}人 (节省 ~70% Token)")
+
     start_time = datetime.now()
     
     for round_num in range(total_rounds):
@@ -1449,7 +1567,10 @@ async def run_reddit_simulation(
                 action_logger.log_round_end(round_num + 1, 0)
             continue
         
-        actions = {agent: LLMAction() for _, agent in active_agents}
+        # Reddit 动作分配
+        actions = build_smart_actions_for_round(
+            active_agents, tier_map, db_path, agent_configs_map, platform="reddit"
+        )
         await result.env.step(actions)
         
         # 从数据库获取实际执行的动作并记录

@@ -4,6 +4,9 @@
     <nav class="navbar">
       <div class="nav-brand">MIROFISH</div>
       <div class="nav-links">
+        <button class="settings-btn" @click="showSettings = true" :title="$t('settings.title')">
+          ⚙️ <span>{{ $t('nav.settings') }}</span>
+        </button>
         <LanguageSwitcher />
         <a href="https://github.com/666ghj/MiroFish" target="_blank" class="github-link">
           {{ $t('nav.visitGithub') }} <span class="arrow">↗</span>
@@ -208,6 +211,9 @@
       <!-- 历史项目数据库 -->
       <HistoryDatabase />
     </div>
+
+    <!-- 系统与模型设置弹窗 -->
+    <SettingsModal v-model:visible="showSettings" />
   </div>
 </template>
 
@@ -216,8 +222,10 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import HistoryDatabase from '../components/HistoryDatabase.vue'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
+import SettingsModal from '../components/SettingsModal.vue'
 
 const router = useRouter()
+const showSettings = ref(false)
 
 // 表单数据
 const formData = ref({
@@ -358,6 +366,27 @@ const startSimulation = () => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.settings-btn {
+  background: transparent;
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 5px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.settings-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #38BDF8;
+  color: #38BDF8;
 }
 
 .github-link {

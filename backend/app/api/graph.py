@@ -882,6 +882,24 @@ def get_graph_data(graph_id: str):
     获取图谱数据（节点和边）
     """
     try:
+        if graph_id.startswith("local_") or Config.MEMORY_MODE == 'local' or not Config.ZEP_API_KEY:
+            from ..services.local_graph_service import LocalGraphService
+            local_svc = LocalGraphService()
+            nodes = local_svc.get_nodes(graph_id)
+            edges = local_svc.get_edges(graph_id)
+            meta = local_svc.get_meta(graph_id)
+            return jsonify({
+                "success": True,
+                "data": {
+                    "graph_id": graph_id,
+                    "nodes": nodes,
+                    "edges": edges,
+                    "node_count": len(nodes),
+                    "edge_count": len(edges),
+                    "entity_types": meta.get("entity_types", [])
+                }
+            })
+
         if not Config.ZEP_API_KEY:
             return jsonify({
                 "success": False,
@@ -907,9 +925,20 @@ def get_graph_data(graph_id: str):
 @graph_bp.route('/delete/<graph_id>', methods=['DELETE'])
 def delete_graph(graph_id: str):
     """
-    删除Zep图谱
+    删除图谱
     """
     try:
+        if graph_id.startswith("local_") or Config.MEMORY_MODE == 'local' or not Config.ZEP_API_KEY:
+            import shutil
+            from ..services.local_graph_service import LocalGraphService
+            g_dir = LocalGraphService()._graph_dir(graph_id)
+            if os.path.exists(g_dir):
+                shutil.rmtree(g_dir, ignore_errors=True)
+            return jsonify({
+                "success": True,
+                "message": t('api.graphDeleted', id=graph_id)
+            })
+
         if not Config.ZEP_API_KEY:
             return jsonify({
                 "success": False,

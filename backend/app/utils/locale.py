@@ -27,14 +27,20 @@ def set_locale(locale: str):
 
 def get_locale() -> str:
     if has_request_context():
-        raw = request.headers.get('Accept-Language', 'zh')
-        return raw if raw in _translations else 'zh'
-    return getattr(_thread_local, 'locale', 'zh')
+        raw = request.headers.get('Accept-Language', 'id')
+        if raw in _translations:
+            return raw
+        # Check prefix e.g. 'id-ID' -> 'id'
+        prefix = raw.split('-')[0].split(',')[0].strip().lower()
+        if prefix in _translations:
+            return prefix
+        return 'id'
+    return getattr(_thread_local, 'locale', 'id')
 
 
 def t(key: str, **kwargs) -> str:
     locale = get_locale()
-    messages = _translations.get(locale, _translations.get('zh', {}))
+    messages = _translations.get(locale, _translations.get('id', _translations.get('en', {})))
 
     value = messages
     for part in key.split('.'):
@@ -45,7 +51,7 @@ def t(key: str, **kwargs) -> str:
             break
 
     if value is None:
-        value = _translations.get('zh', {})
+        value = _translations.get('id', _translations.get('en', {}))
         for part in key.split('.'):
             if isinstance(value, dict):
                 value = value.get(part)

@@ -7,9 +7,30 @@
         <div v-if="reportOutline" class="report-content-wrapper">
           <!-- Report Header -->
           <div class="report-header-block">
-            <div class="report-meta">
-              <span class="report-tag">Prediction Report</span>
-              <span class="report-id">ID: {{ reportId || 'REF-2024-X92' }}</span>
+            <div class="report-header-top">
+              <div class="report-meta">
+                <span class="report-tag">Prediction Report</span>
+                <span class="report-id">ID: {{ reportId || 'REF-2024-X92' }}</span>
+              </div>
+              <div class="report-export-actions">
+                <button class="export-btn export-pdf-btn" @click="downloadPDF" :title="$t('step4.downloadPdf')">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                    <line x1="9" y1="15" x2="15" y2="15"></line>
+                  </svg>
+                  <span>{{ $t('step4.downloadPdf') }}</span>
+                </button>
+                <button class="export-btn export-md-btn" @click="downloadMarkdown" :title="$t('step4.downloadMd')">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>{{ $t('step4.downloadMd') }}</span>
+                </button>
+              </div>
             </div>
             <h1 class="main-title">{{ reportOutline.title }}</h1>
             <p class="sub-title">{{ reportOutline.summary }}</p>
@@ -116,17 +137,39 @@
                 </svg>
               </button>
               <div v-if="showAgentDropdown" class="dropdown-menu">
-                <div class="dropdown-header">{{ $t('step5.selectChatTarget') }}</div>
-                <div 
-                  v-for="(agent, idx) in profiles" 
-                  :key="idx"
-                  class="dropdown-item"
-                  @click="selectAgent(agent, idx)"
-                >
-                  <div class="agent-avatar">{{ (agent.username || 'A')[0] }}</div>
-                  <div class="agent-info">
-                    <span class="agent-name">{{ agent.username }}</span>
-                    <span class="agent-role">{{ agent.profession || $t('step2.unknownProfession') }}</span>
+                <div class="dropdown-header">
+                  <span>{{ $t('step5.selectChatTarget') }}</span>
+                  <span class="agent-count-badge">{{ filteredProfiles.length }}</span>
+                </div>
+                <div class="dropdown-search">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <input 
+                    v-model="agentSearchQuery"
+                    type="text" 
+                    :placeholder="$t('step5.searchAgent') || 'Cari agen...'"
+                    @click.stop
+                  />
+                  <button v-if="agentSearchQuery" class="clear-search-btn" @click.stop="agentSearchQuery = ''">×</button>
+                </div>
+                <div class="dropdown-list">
+                  <div 
+                    v-for="agent in filteredProfiles" 
+                    :key="agent._originalIndex"
+                    class="dropdown-item"
+                    :class="{ 'is-selected': selectedAgentIndex === agent._originalIndex }"
+                    @click="selectAgent(agent, agent._originalIndex)"
+                  >
+                    <div class="agent-avatar">{{ (agent.username || 'A')[0] }}</div>
+                    <div class="agent-info">
+                      <span class="agent-name">{{ agent.username }}</span>
+                      <span class="agent-role">{{ agent.profession || $t('step2.unknownProfession') }}</span>
+                    </div>
+                  </div>
+                  <div v-if="filteredProfiles.length === 0" class="dropdown-empty">
+                    Tidak ditemukan agen yang cocok
                   </div>
                 </div>
               </div>
@@ -455,6 +498,34 @@ const collapsedSections = ref(new Set())
 const currentSectionIndex = ref(null)
 const profiles = ref([])
 
+// Agent search & filter
+const agentSearchQuery = ref('')
+const filteredProfiles = computed(() => {
+  const query = agentSearchQuery.value.trim().toLowerCase()
+  const list = profiles.value.map((agent, index) => ({
+    ...agent,
+    _originalIndex: index
+  }))
+  if (!query) return list
+  return list.filter(agent => {
+    const nameMatch = (agent.username || '').toLowerCase().includes(query)
+    const professionMatch = (agent.profession || '').toLowerCase().includes(query)
+    const bioMatch = (agent.bio || '').toLowerCase().includes(query)
+    return nameMatch || professionMatch || bioMatch
+  })
+})
+
+// Export methods
+const downloadPDF = () => {
+  if (!props.reportId) return
+  window.open(`/api/report/${props.reportId}/printable?auto_print=1`, '_blank')
+}
+
+const downloadMarkdown = () => {
+  if (!props.reportId) return
+  window.open(`/api/report/${props.reportId}/download`, '_blank')
+}
+
 // Helper Methods
 const isSectionCompleted = (sectionIndex) => {
   return !!generatedSections.value[sectionIndex]
@@ -524,6 +595,7 @@ const toggleAgentDropdown = () => {
   if (showAgentDropdown.value) {
     activeTab.value = 'chat'
     chatTarget.value = 'agent'
+    agentSearchQuery.value = ''
   }
 }
 
@@ -535,6 +607,7 @@ const selectAgent = (agent, idx) => {
   selectedAgentIndex.value = idx
   chatTarget.value = 'agent'
   showAgentDropdown.value = false
+  agentSearchQuery.value = ''
   
   // 恢复该 Agent 的对话记录
   chatHistory.value = chatHistoryCache.value[`agent_${idx}`] || []
@@ -933,6 +1006,7 @@ const handleClickOutside = (e) => {
   const dropdown = document.querySelector('.agent-dropdown')
   if (dropdown && !dropdown.contains(e.target)) {
     showAgentDropdown.value = false
+    agentSearchQuery.value = ''
   }
 }
 
@@ -1028,11 +1102,59 @@ watch(() => props.simulationId, (newId) => {
   margin-bottom: 30px;
 }
 
+.report-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .report-meta {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+}
+
+.report-export-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.export-pdf-btn {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.export-pdf-btn:hover {
+  background: #1D4ED8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.export-md-btn {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+.export-md-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
 }
 
 .report-tag {
@@ -1320,6 +1442,8 @@ watch(() => props.simulationId, (newId) => {
   border-bottom: 1px solid #E5E7EB;
   background: linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%);
   gap: 16px;
+  position: relative;
+  z-index: 50;
 }
 
 .action-bar-header {
@@ -1408,7 +1532,9 @@ watch(() => props.simulationId, (newId) => {
 }
 
 .agent-pill {
-  width: 200px;
+  min-width: 170px;
+  max-width: 250px;
+  width: auto;
   justify-content: space-between;
 }
 
@@ -1820,50 +1946,121 @@ watch(() => props.simulationId, (newId) => {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 240px;
+  top: calc(100% + 8px);
+  right: 0;
+  left: auto;
+  transform: none;
+  width: 330px;
+  max-width: calc(100vw - 32px);
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
   border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
-  max-height: 320px;
-  overflow-y: auto;
-  z-index: 100;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
 }
 
 .dropdown-header {
-  padding: 12px 16px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #9CA3AF;
+  color: #6B7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #F3F4F6;
+}
+
+.agent-count-badge {
+  background: #F3F4F6;
+  color: #4B5563;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.dropdown-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: 4px 12px 8px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  color: #9CA3AF;
+  transition: border-color 0.15s ease;
+}
+
+.dropdown-search:focus-within {
+  border-color: #3B82F6;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12px;
+  width: 100%;
+  color: #1F2937;
+}
+
+.clear-search-btn {
+  border: none;
+  background: transparent;
+  color: #9CA3AF;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.clear-search-btn:hover {
+  color: #4B5563;
+}
+
+.dropdown-list {
+  overflow-y: auto;
+  flex: 1;
+  max-height: 300px;
+  padding: 0 6px 8px;
+  scrollbar-width: thin;
 }
 
 .dropdown-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
+  padding: 8px 10px;
+  margin-bottom: 2px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
   border-left: 3px solid transparent;
 }
 
 .dropdown-item:hover {
-  background: #F9FAFB;
-  border-left-color: #1F2937;
+  background: #F3F4F6;
+  border-left-color: #3B82F6;
 }
 
-.dropdown-item:first-of-type {
-  margin-top: 4px;
+.dropdown-item.is-selected {
+  background: #EFF6FF;
+  border-left-color: #2563EB;
 }
 
-.dropdown-item:last-child {
-  margin-bottom: 4px;
+.dropdown-empty {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: #9CA3AF;
 }
 
 .agent-avatar {
@@ -1871,7 +2068,7 @@ watch(() => props.simulationId, (newId) => {
   height: 32px;
   min-width: 32px;
   min-height: 32px;
-  background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
+  background: linear-gradient(135deg, #374151 0%, #1F2937 100%);
   color: #FFFFFF;
   border-radius: 50%;
   display: flex;
@@ -1881,6 +2078,10 @@ watch(() => props.simulationId, (newId) => {
   font-weight: 600;
   flex-shrink: 0;
   box-shadow: 0 2px 4px rgba(31, 41, 55, 0.1);
+}
+
+.dropdown-item.is-selected .agent-avatar {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
 }
 
 .agent-info {
@@ -1902,7 +2103,7 @@ watch(() => props.simulationId, (newId) => {
 
 .agent-role {
   font-size: 11px;
-  color: #9CA3AF;
+  color: #6B7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

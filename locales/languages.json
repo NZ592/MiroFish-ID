@@ -1,4 +1,8 @@
 {
+  "id": {
+    "label": "Bahasa Indonesia",
+    "llmInstruction": "Tolong berikan semua jawaban, postingan, interaksi, dan laporan dalam Bahasa Indonesia yang alami, baku, dan jelas."
+  },
   "zh": {
     "label": "中文",
     "llmInstruction": "请使用中文回答。"

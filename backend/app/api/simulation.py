@@ -1257,6 +1257,10 @@ def get_simulation_config_realtime(simulation_id: str):
                             generation_stage = "generating_config"
                         else:
                             generation_stage = "generating_profiles"
+                    elif config_generated and file_exists:
+                        generation_stage = "completed"
+                        # 配置已成功生成，避免将后续模拟运行的运行时错误误判为配置生成失败
+                        error = None
                     elif status == "ready":
                         generation_stage = "completed"
                     elif status == "failed":
@@ -2386,13 +2390,6 @@ def interview_agent():
                 "error": t('api.invalidInterviewPlatform')
             }), 400
         
-        # 检查环境状态
-        if not SimulationRunner.check_env_alive(simulation_id):
-            return jsonify({
-                "success": False,
-                "error": t('api.envNotRunning')
-            }), 400
-        
         # 优化prompt，添加前缀避免Agent调用工具
         optimized_prompt = optimize_interview_prompt(prompt)
         
@@ -2521,13 +2518,6 @@ def interview_agents_batch():
                     "error": t('api.interviewListInvalidPlatform', index=i+1)
                 }), 400
 
-        # 检查环境状态
-        if not SimulationRunner.check_env_alive(simulation_id):
-            return jsonify({
-                "success": False,
-                "error": t('api.envNotRunning')
-            }), 400
-
         # 优化每个采访项的prompt，添加前缀避免Agent调用工具
         optimized_interviews = []
         for interview in interviews:
@@ -2626,13 +2616,6 @@ def interview_all_agents():
             return jsonify({
                 "success": False,
                 "error": t('api.invalidInterviewPlatform')
-            }), 400
-
-        # 检查环境状态
-        if not SimulationRunner.check_env_alive(simulation_id):
-            return jsonify({
-                "success": False,
-                "error": t('api.envNotRunning')
             }), 400
 
         # 优化prompt，添加前缀避免Agent调用工具

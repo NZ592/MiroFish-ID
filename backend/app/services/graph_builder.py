@@ -66,10 +66,8 @@ class GraphBuilderService:
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or Config.ZEP_API_KEY
-        if not self.api_key:
-            raise ValueError("ZEP_API_KEY 未配置")
-        
-        self.client = get_zep_client(self.api_key)
+        self.is_local = (Config.MEMORY_MODE == 'local') or (not self.api_key)
+        self.client = None if self.is_local else get_zep_client(self.api_key)
         self.task_manager = TaskManager()
     
     def build_graph_async(
@@ -139,6 +137,30 @@ class GraphBuilderService:
                 message=t('progress.startBuildingGraph')
             )
             
+            if self.is_local:
+                from .local_graph_service import LocalGraphService
+                local_svc = LocalGraphService()
+                graph_id = local_svc.create_graph(graph_name)
+                self.task_manager.update_task(
+                    task_id,
+                    progress=30,
+                    message=t('progress.textChunking')
+                )
+                meta = local_svc.build_from_text(graph_id, text, ontology)
+                self.task_manager.update_task(
+                    task_id,
+                    status=TaskStatus.COMPLETED,
+                    progress=100,
+                    message=t('progress.graphBuildComplete'),
+                    result={
+                        "graph_id": graph_id,
+                        "node_count": meta.get("node_count", 0),
+                        "edge_count": meta.get("edge_count", 0),
+                        "entity_types": meta.get("entity_types", []),
+                    }
+                )
+                return
+
             # Validate the complete ingestion payload before the first Cloud
             # mutation, including this legacy service entry point.
             chunks = TextProcessor.split_text(text, chunk_size, chunk_overlap)
