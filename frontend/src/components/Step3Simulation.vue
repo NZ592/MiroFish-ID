@@ -295,7 +295,7 @@ import {
   getRunStatus,
   getRunStatusDetail
 } from '../api/simulation'
-import { generateReport } from '../api/report'
+import { generateReport, getReportBySimulation } from '../api/report'
 
 const { t } = useI18n()
 
@@ -645,25 +645,16 @@ const handleNextStep = async () => {
   addLog(t('log.startingReportGen'))
   
   try {
-    // Pastikan jika status runner masih running namun platform sudah selesai, panggil stopSimulation terlebih dahulu
-    if (runStatus.value?.runner_status === 'running') {
-      try {
-        await stopSimulation({ simulation_id: props.simulationId })
-      } catch (stopErr) {
-        console.warn('Auto stop simulation error:', stopErr)
-      }
-    }
-
     const res = await generateReport({
       simulation_id: props.simulationId,
-      force_regenerate: true
+      force_regenerate: false
     })
     
     if (res.success && res.data) {
       const reportId = res.data.report_id
       addLog(t('log.reportGenTaskStarted', { reportId }))
       
-      // 跳转到报告页面
+      // Langsung arahkan ke halaman laporan
       router.push({ name: 'Report', params: { reportId } })
     } else {
       addLog(t('log.reportGenFailed', { error: res.error || t('common.unknownError') }))
@@ -709,6 +700,18 @@ onMounted(async () => {
         phase.value = 2
         emit('update-status', 'completed')
         fetchRunStatusDetail()
+
+        // Periksa apakah laporan sudah siap/sedang dibuat, jika ada arahkan langsung
+        try {
+          const reportRes = await getReportBySimulation(props.simulationId)
+          if (reportRes.success && reportRes.data && reportRes.data.report_id) {
+            const reportId = reportRes.data.report_id
+            router.push({ name: 'Report', params: { reportId } })
+            return
+          }
+        } catch (repErr) {
+          // Abaikan jika belum ada laporan
+        }
         return
       } else if (data.runner_status === 'running') {
         phase.value = 1

@@ -9,6 +9,14 @@ export const generateReport = (data) => {
 }
 
 /**
+ * 获取模拟关联的报告
+ * @param {string} simulationId
+ */
+export const getReportBySimulation = (simulationId) => {
+  return service.get(`/api/report/by-simulation/${simulationId}`)
+}
+
+/**
  * 获取报告生成状态
  * @param {string} reportId
  */

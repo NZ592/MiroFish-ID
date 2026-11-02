@@ -6,6 +6,7 @@ Report API路由
 import os
 import traceback
 import threading
+from datetime import datetime
 from flask import request, jsonify, send_file
 
 from . import report_bp
@@ -90,35 +91,46 @@ def generate_report():
             RunnerStatus.STOPPING,
         }
         
-        # Jika platform simulasi sudah selesai semua tapi status masih running, otomatis berhentikan proses
-        if run_state is not None and (
+        # Periksa apakah seluruh ronde/platform simulasi sudah selesai
+        is_all_platforms_done = run_state is not None and (
             (run_state.twitter_completed and run_state.reddit_completed)
             or (run_state.twitter_completed and not run_state.reddit_running)
             or (run_state.reddit_completed and not run_state.twitter_running)
-        ):
-            if run_state.runner_status in active_statuses:
-                logger.info(f"Semua platform telah selesai untuk {simulation_id}, otomatis menyelesaikan runner sebelum membuat laporan")
+            or (run_state.current_round >= run_state.total_rounds and run_state.total_rounds > 0)
+            or (run_state.progress_percent >= 100.0)
+        )
+        
+        if is_all_platforms_done:
+            logger.info(f"Semua platform telah selesai untuk {simulation_id}, menetapkan status COMPLETED secara otomatis")
+            run_state.runner_status = RunnerStatus.COMPLETED
+            run_state.twitter_running = False
+            run_state.reddit_running = False
+            run_state.completed_at = run_state.completed_at or datetime.now().isoformat()
+            SimulationRunner._save_run_state(run_state)
+            SimulationRunner._sync_simulation_status(simulation_id, RunnerStatus.COMPLETED)
+            
+            # Matikan proses jika masih ada sisa
+            proc = SimulationRunner._processes.get(simulation_id)
+            if proc and proc.poll() is None:
                 try:
-                    SimulationRunner.stop_simulation(simulation_id)
-                    run_state = SimulationRunner.get_run_state(simulation_id)
-                    updater = ZepGraphMemoryManager.get_updater(simulation_id)
-                except Exception as e:
-                    logger.warning(f"Gagal auto-stop runner: {e}")
+                    SimulationRunner._terminate_process(proc, simulation_id)
+                except Exception as term_err:
+                    logger.warning(f"Gagal terminate proses simulasi: {term_err}")
 
-        if updater is not None or (
-            run_state is not None and run_state.runner_status in active_statuses
-        ):
+        # Jika masih dalam proses awal yang benar-benar belum selesai
+        if run_state is not None and run_state.runner_status in {RunnerStatus.STARTING, RunnerStatus.RUNNING} and not is_all_platforms_done:
             return jsonify({
                 "success": False,
                 "error": (
-                    "Simulation or Zep graph ingestion is still active; "
-                    "wait for a terminal run status before generating a report"
+                    "Simulasi masih berjalan; tunggu hingga seluruh ronde selesai sebelum membuat laporan"
                 ),
-                "ingestion_pending": updater is not None,
+                "ingestion_pending": False,
             }), 409
+
         successful_terminal_statuses = {
             RunnerStatus.COMPLETED,
             RunnerStatus.STOPPED,
+            RunnerStatus.STOPPING,
         }
         if (
             run_state is None

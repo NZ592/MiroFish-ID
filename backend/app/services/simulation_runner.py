@@ -822,9 +822,10 @@ class SimulationRunner:
                                             f"Semua platform telah selesai: {state.simulation_id}. "
                                             f"Menghentikan proses simulasi agar status beralih ke COMPLETED."
                                         )
-                                        if process and process.poll() is None:
+                                        proc = cls._processes.get(state.simulation_id)
+                                        if proc and proc.poll() is None:
                                             try:
-                                                cls._terminate_process(process, state.simulation_id)
+                                                cls._terminate_process(proc, state.simulation_id)
                                             except Exception as term_err:
                                                 logger.warning(f"Gagal terminate proses simulasi: {term_err}")
                                 
@@ -1024,21 +1025,18 @@ class SimulationRunner:
             and monitor is not threading.current_thread()
             and monitor.is_alive()
         ):
-            wait_timeout = max(
-                30.0,
-                ZEP_INGESTION_WAIT_TIMEOUT_SECONDS
-                + ZEP_HTTP_REQUEST_TIMEOUT_SECONDS
-                + 5,
-            )
-            monitor.join(timeout=wait_timeout)
-            if monitor.is_alive():
-                # The monitor still owns finalization and may be inside one
-                # bounded HTTP request. Do not block on or overwrite its lock;
-                # leave the observable state as STOPPING and let polling expose
-                # the eventual STOPPED/FAILED result.
-                raise SimulationStopPending(
-                    f"模拟仍在停止中，图谱写入未在 {wait_timeout:.0f}s 内完成"
+            monitor.join(timeout=2.0)
+            with cls._finalization_lock(simulation_id):
+                state = cls.get_run_state(simulation_id) or state
+                desired = (
+                    RunnerStatus.COMPLETED
+                    if (state.twitter_completed and state.reddit_completed)
+                    else RunnerStatus.STOPPED
                 )
+                state.runner_status = desired
+                state.completed_at = state.completed_at or datetime.now().isoformat()
+                cls._save_run_state(state)
+                cls._sync_simulation_status(simulation_id, desired)
         else:
             # Restart recovery or tests may have no monitor thread. Complete
             # the same barrier synchronously in this request.
