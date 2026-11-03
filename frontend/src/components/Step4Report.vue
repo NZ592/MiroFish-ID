@@ -35,10 +35,43 @@
             <h1 class="main-title">{{ reportOutline.title }}</h1>
             <p class="sub-title">{{ reportOutline.summary }}</p>
             <div class="header-divider"></div>
+
+            <!-- View Tab Switcher: Eksum vs Laporan Lengkap -->
+            <div class="report-view-tab-nav">
+              <button 
+                type="button"
+                class="report-tab-pill" 
+                :class="{ 'is-active': activeReportTab === 'eksum' }"
+                @click="activeReportTab = 'eksum'"
+              >
+                <span class="tab-emoji">📊</span>
+                <span class="tab-label">Ringkasan Eksekutif (Eksum)</span>
+              </button>
+              <button 
+                type="button"
+                class="report-tab-pill" 
+                :class="{ 'is-active': activeReportTab === 'full' }"
+                @click="activeReportTab = 'full'"
+              >
+                <span class="tab-emoji">📖</span>
+                <span class="tab-label">Laporan Lengkap</span>
+              </button>
+            </div>
           </div>
 
-          <!-- Sections List -->
-          <div class="sections-list">
+          <!-- Executive Summary Component -->
+          <div v-if="activeReportTab === 'eksum'" class="eksum-wrapper">
+            <ExecutiveSummary 
+              :reportId="reportId" 
+              :simulationId="simulationId"
+              :title="reportOutline.title"
+              :summary="reportOutline.summary"
+              :sections="reportOutline.sections"
+            />
+          </div>
+
+          <!-- Sections List (Laporan Lengkap) -->
+          <div v-show="activeReportTab === 'full'" class="sections-list">
             <div 
               v-for="(section, idx) in reportOutline.sections" 
               :key="idx"
@@ -415,6 +448,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick, h, reactive } f
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getAgentLog, getConsoleLog } from '../api/report'
+import ExecutiveSummary from './ExecutiveSummary.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -435,6 +469,7 @@ const goToInteraction = () => {
 }
 
 // State
+const activeReportTab = ref('eksum')
 const agentLogs = ref([])
 const consoleLogs = ref([])
 const agentLogLine = ref(0)
@@ -2394,6 +2429,56 @@ const downloadMarkdown = () => {
 
 .report-header-block {
   margin-bottom: 30px;
+}
+
+.report-view-tab-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
+  margin: 18px 0 0 0;
+  border: 1px solid #e2e8f0;
+}
+
+.report-tab-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.report-tab-pill:hover:not(.is-active) {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.report-tab-pill.is-active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.tab-emoji {
+  font-size: 14px;
+}
+
+.tab-label {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.eksum-wrapper {
+  margin-top: 10px;
 }
 
 .report-header-top {

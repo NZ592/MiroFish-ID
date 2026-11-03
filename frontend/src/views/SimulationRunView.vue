@@ -21,12 +21,12 @@
       </div>
 
       <div class="header-right">
+        <button class="settings-btn" @click="showSettings = true" :title="$t('settings.title')">
+          ⚙️
+        </button>
         <LanguageSwitcher />
         <div class="step-divider"></div>
-        <div class="workflow-step">
-          <span class="step-num">Step 3/5</span>
-          <span class="step-name">{{ $tm('main.stepNames')[2] }}</span>
-        </div>
+        <WorkflowNav :currentStep="3" :simulationId="currentSimulationId" :projectId="projectData?.project_id" />
         <div class="step-divider"></div>
         <span class="status-indicator" :class="statusClass">
           <span class="dot"></span>
@@ -65,6 +65,9 @@
         />
       </div>
     </main>
+
+    <!-- Modal Settings -->
+    <SettingsModal v-model:visible="showSettings" />
   </div>
 </template>
 
@@ -73,6 +76,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import GraphPanel from '../components/GraphPanel.vue'
 import Step3Simulation from '../components/Step3Simulation.vue'
+import WorkflowNav from '../components/WorkflowNav.vue'
+import SettingsModal from '../components/SettingsModal.vue'
 import { getProject, getGraphData } from '../api/graph'
 import { getSimulation, getSimulationConfig, stopSimulation, closeSimulationEnv, getEnvStatus } from '../api/simulation'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
@@ -81,6 +86,7 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const showSettings = ref(false)
 
 // Props
 const props = defineProps({
@@ -382,6 +388,25 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.settings-btn {
+  background: transparent;
+  color: #333;
+  border: 1px solid #CCC;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.settings-btn:hover {
+  background: #EEE;
+  border-color: #0284C7;
+  color: #0284C7;
 }
 
 .workflow-step {

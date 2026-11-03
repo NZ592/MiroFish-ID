@@ -26,10 +26,7 @@
         </button>
         <LanguageSwitcher />
         <div class="step-divider"></div>
-        <div class="workflow-step">
-          <span class="step-num">Step {{ currentStep }}/5</span>
-          <span class="step-name">{{ $tm('main.stepNames')[currentStep - 1] }}</span>
-        </div>
+        <WorkflowNav :currentStep="currentStep" :projectId="currentProjectId" />
         <div class="step-divider"></div>
         <span class="status-indicator" :class="statusClass">
           <span class="dot"></span>
@@ -93,6 +90,7 @@ import SettingsModal from '../components/SettingsModal.vue'
 import { generateOntology, getProject, buildGraph, getTaskStatus, getGraphData } from '../api/graph'
 import { getPendingUpload, clearPendingUpload } from '../store/pendingUpload'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
+import WorkflowNav from '../components/WorkflowNav.vue'
 
 const route = useRoute()
 const router = useRouter()

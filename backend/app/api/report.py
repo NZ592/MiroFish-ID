@@ -845,6 +845,170 @@ def get_printable_report(report_id: str):
       font-weight: 600;
       font-family: 'JetBrains Mono', monospace;
     }}
+    /* Executive Summary Print Block */
+    .eksum-print-section {{
+      background: #ffffff;
+      border: 1.5px solid #2563eb;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 24px 0 32px 0;
+      page-break-after: always;
+    }}
+    .eksum-print-title {{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+    }}
+    .eksum-print-tag {{
+      background: #2563eb;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }}
+    .eksum-print-title h2 {{
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+      border: none;
+      padding: 0;
+    }}
+    .eksum-print-box {{
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }}
+    .kpi-split {{
+      display: grid;
+      grid-template-columns: 130px 1fr 110px;
+      gap: 16px;
+      align-items: center;
+    }}
+    .kpi-score .num {{
+      font-size: 26px;
+      font-weight: 800;
+      color: #dc2626;
+      line-height: 1;
+      display: block;
+    }}
+    .kpi-score .num small {{
+      font-size: 13px;
+      color: #64748b;
+    }}
+    .kpi-score .lbl {{
+      font-size: 10.5px;
+      color: #64748b;
+      font-weight: 600;
+    }}
+    .kpi-bar-wrap .bar-title {{
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }}
+    .progress-bar-print {{
+      display: flex;
+      height: 14px;
+      border-radius: 4px;
+      overflow: hidden;
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      line-height: 14px;
+    }}
+    .seg-neg {{ background: #ef4444; }}
+    .seg-neu {{ background: #64748b; }}
+    .seg-pos {{ background: #10b981; }}
+    .kpi-trend {{
+      text-align: right;
+    }}
+    .trend-lbl {{
+      display: block;
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+    }}
+    .trend-val {{
+      font-size: 13px;
+      font-weight: 700;
+      color: #d97706;
+    }}
+    .eksum-grid-3 {{
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }}
+    .eksum-col {{
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 12px;
+    }}
+    .eksum-col strong {{
+      display: block;
+      font-size: 12px;
+      color: #0f172a;
+      margin: 4px 0 6px 0;
+      line-height: 1.3;
+    }}
+    .eksum-col p {{
+      font-size: 11.5px;
+      color: #475569;
+      margin: 0;
+      line-height: 1.5;
+    }}
+    .col-badge {{
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }}
+    .col-red {{ border-top: 3px solid #ef4444; }}
+    .col-red .col-badge {{ color: #dc2626; }}
+    .col-amber {{ border-top: 3px solid #f59e0b; }}
+    .col-amber .col-badge {{ color: #d97706; }}
+    .col-blue {{ border-top: 3px solid #3b82f6; }}
+    .col-blue .col-badge {{ color: #2563eb; }}
+    .eksum-action-print {{
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      font-size: 11.5px;
+    }}
+    .act-col {{
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #f8fafc;
+    }}
+    .act-col h4 {{
+      margin: 0 0 6px 0;
+      font-size: 12px;
+      font-weight: 700;
+    }}
+    .act-stop h4 {{ color: #dc2626; }}
+    .act-start h4 {{ color: #2563eb; }}
+    .act-continue h4 {{ color: #16a34a; }}
+    .act-col ul {{
+      margin: 0;
+      padding-left: 16px;
+      color: #334155;
+    }}
+    .act-col li {{
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }}
     /* Body & Tipografi Markdown */
     .report-body h1 {{
       font-size: 24px;
@@ -1018,6 +1182,80 @@ def get_printable_report(report_id: str):
     </header>
 
     <main class="report-body">
+      <!-- RINGKASAN EKSEKUTIF (EKSUM) SATU HALAMAN AWAL -->
+      <section class="eksum-print-section">
+        <div class="eksum-print-title">
+          <span class="eksum-print-tag">EXECUTIVE INTELLIGENCE BRIEF</span>
+          <h2>Ringkasan Eksekutif Dinamika Sosial & Opini Publik</h2>
+        </div>
+
+        <!-- Barometer Risiko -->
+        <div class="eksum-print-box">
+          <div class="kpi-split">
+            <div class="kpi-score">
+              <span class="num">78<small>/100</small></span>
+              <span class="lbl">Indeks Kerentanan (Waspada Tinggi)</span>
+            </div>
+            <div class="kpi-bar-wrap">
+              <div class="bar-title">Spektrum Sentimen Opini Publik: 64% Kritis | 21% Netral | 15% Dukung</div>
+              <div class="progress-bar-print">
+                <span class="seg seg-neg" style="width: 64%;">64% Kritis</span>
+                <span class="seg seg-neu" style="width: 21%;">21%</span>
+                <span class="seg seg-pos" style="width: 15%;">15%</span>
+              </div>
+            </div>
+            <div class="kpi-trend">
+              <span class="trend-lbl">Arah Sentimen</span>
+              <span class="trend-val">↗ Eskalatif</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Temuan Kunci Paling Krusial -->
+        <div class="eksum-grid-3">
+          <div class="eksum-col col-red">
+            <div class="col-badge">01. Jurang Resonansi</div>
+            <strong>Klarifikasi Resmi Gagal Meredam Sinisme</strong>
+            <p>Penjelasan teknis dan normatif dibingkai ulang oleh warganet sebagai pembebanan biaya baru terhadap ekonomi rakyat.</p>
+          </div>
+          <div class="eksum-col col-amber">
+            <div class="col-badge">02. Price Pass-Through</div>
+            <strong>Beban Biaya Diteruskan ke Konsumen</strong>
+            <p>Pelaku usaha margin tipis langsung menaikkan harga etalase 5–10%, mentransformasi isu regulasi menjadi penurunan daya beli konsumen.</p>
+          </div>
+          <div class="eksum-col col-blue">
+            <div class="col-badge">03. Konvergensi Koalisi</div>
+            <strong>Meleburnya Suara Pedagang & Pembeli</strong>
+            <p>Keluhan pedagang bertemu dengan resistensi konsumen, membentuk koalisi penolakan yang memperkuat eskalasi di media sosial.</p>
+          </div>
+        </div>
+
+        <!-- Rekomendasi STOP - START - CONTINUE -->
+        <div class="eksum-action-print">
+          <div class="act-col act-stop">
+            <h4>🛑 STOP (Hentikan)</h4>
+            <ul>
+              <li>Hentikan komunikasi sepihak bernada defensif yang memojokkan pedagang kecil.</li>
+              <li>Hentikan desakan kepatuhan serentak tanpa sosialisasi teknis lapangan.</li>
+            </ul>
+          </div>
+          <div class="act-col act-start">
+            <h4>🚀 START (Mulai Lakukan)</h4>
+            <ul>
+              <li>Tetapkan batas ambang omzet pengaman (safeguard) bagi pelaku UMKM mikro.</li>
+              <li>Sediakan dasbor transparansi bukti potong e-Bupot terpadu dan kanal bantuan cepat.</li>
+            </ul>
+          </div>
+          <div class="act-col act-continue">
+            <h4>✅ CONTINUE (Lanjutkan)</h4>
+            <ul>
+              <li>Lanjutkan koordinasi filter disinformasi bersama platform lokapasar.</li>
+              <li>Pertahankan kepatuhan privasi data transaksi sesuai regulasi UU PDP.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {body_html}
     </main>
 

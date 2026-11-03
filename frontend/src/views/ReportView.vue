@@ -21,12 +21,12 @@
       </div>
 
       <div class="header-right">
+        <button class="settings-btn" @click="showSettings = true" :title="$t('settings.title')">
+          ⚙️
+        </button>
         <LanguageSwitcher />
         <div class="step-divider"></div>
-        <div class="workflow-step">
-          <span class="step-num">Step 4/5</span>
-          <span class="step-name">{{ $tm('main.stepNames')[3] }}</span>
-        </div>
+        <WorkflowNav :currentStep="4" :reportId="currentReportId" :simulationId="simulationId" />
         <div class="step-divider"></div>
         <span class="status-indicator" :class="statusClass">
           <span class="dot"></span>
@@ -60,6 +60,9 @@
         />
       </div>
     </main>
+
+    <!-- Modal Settings -->
+    <SettingsModal v-model:visible="showSettings" />
   </div>
 </template>
 
@@ -69,6 +72,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import GraphPanel from '../components/GraphPanel.vue'
 import Step4Report from '../components/Step4Report.vue'
+import WorkflowNav from '../components/WorkflowNav.vue'
+import SettingsModal from '../components/SettingsModal.vue'
 import { getProject, getGraphData } from '../api/graph'
 import { getSimulation } from '../api/simulation'
 import { getReport } from '../api/report'
@@ -77,6 +82,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const showSettings = ref(false)
 
 // Props
 const props = defineProps({
@@ -284,6 +290,25 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.settings-btn {
+  background: transparent;
+  color: #333;
+  border: 1px solid #CCC;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.settings-btn:hover {
+  background: #EEE;
+  border-color: #0284C7;
+  color: #0284C7;
 }
 
 .workflow-step {
