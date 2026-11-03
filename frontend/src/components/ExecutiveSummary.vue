@@ -112,17 +112,21 @@
             </div>
           </div>
 
-          <!-- Arah Pergerakan & Fokus Gesekan -->
+          <!-- Arah Pergerakan & Fokus Gesekan: Teks Utuh Tanpa Terpotong -->
           <div class="sub-parameters-grid">
             <div class="sub-item">
-              <span class="sub-key">Arah Pergerakan</span>
-              <span class="sub-val">{{ displayData.metrics.movement_direction }}</span>
-              <span class="sub-tag tag-orange">ESKALATIF</span>
+              <div class="sub-item-header">
+                <span class="sub-key">Arah Pergerakan</span>
+                <span class="sub-tag tag-orange">ESKALATIF</span>
+              </div>
+              <p class="sub-val">{{ displayData.metrics.movement_direction }}</p>
             </div>
             <div class="sub-item">
-              <span class="sub-key">Fokus Gesekan</span>
-              <span class="sub-val">{{ displayData.metrics.friction_focus }}</span>
-              <span class="sub-tag tag-red">KRITIS</span>
+              <div class="sub-item-header">
+                <span class="sub-key">Fokus Gesekan</span>
+                <span class="sub-tag tag-red">KRITIS</span>
+              </div>
+              <p class="sub-val">{{ displayData.metrics.friction_focus }}</p>
             </div>
           </div>
         </div>
@@ -523,7 +527,7 @@ const displayData = computed(() => {
 
 <style scoped>
 /* ==========================================================================
-   MiroFish Native Light Theme Design System
+   MiroFish Native Light Theme Design System (Responsive & Non-Truncated)
    Matches Step 1-3, White Cards, Crisp Borders, Clean Typography
    ========================================================================== */
 .executive-summary-wrapper {
@@ -532,6 +536,9 @@ const displayData = computed(() => {
   gap: 20px;
   width: 100%;
   color: #111827;
+  padding-bottom: 30px;
+  container-type: inline-size;
+  container-name: eksum-container;
 }
 
 /* Hero / Header Brief Card */
@@ -539,7 +546,7 @@ const displayData = computed(() => {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 20px 24px;
+  padding: 22px 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
@@ -547,12 +554,15 @@ const displayData = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .hero-badge-group {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -570,13 +580,14 @@ const displayData = computed(() => {
   font-size: 11px;
   color: #6b7280;
   font-family: 'JetBrains Mono', monospace;
+  word-break: break-all;
 }
 
 .btn-regenerate {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-size: 12px;
   font-weight: 600;
   background: #ffffff;
@@ -585,12 +596,14 @@ const displayData = computed(() => {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .btn-regenerate:hover:not(:disabled) {
   background: #f9fafb;
   border-color: #9ca3af;
   color: #111827;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn-regenerate:disabled {
@@ -616,15 +629,17 @@ const displayData = computed(() => {
   font-size: 20px;
   font-weight: 700;
   color: #111827;
-  line-height: 1.4;
-  margin: 0 0 8px 0;
+  line-height: 1.45;
+  margin: 0 0 10px 0;
+  word-break: break-word;
 }
 
 .hero-summary {
   font-size: 13.5px;
-  color: #4b5563;
-  line-height: 1.6;
+  color: #374151;
+  line-height: 1.7;
   margin: 0;
+  word-break: break-word;
 }
 
 /* Loading Card */
@@ -683,6 +698,8 @@ const displayData = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid #f3f4f6;
   background: #ffffff;
@@ -692,6 +709,8 @@ const displayData = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
+  min-width: 220px;
 }
 
 .step-num {
@@ -699,6 +718,7 @@ const displayData = computed(() => {
   font-size: 18px;
   font-weight: 700;
   color: #000000;
+  line-height: 1;
 }
 
 .step-title {
@@ -706,6 +726,7 @@ const displayData = computed(() => {
   font-weight: 600;
   color: #111827;
   letter-spacing: 0.2px;
+  line-height: 1.4;
 }
 
 /* Status Badges */
@@ -716,6 +737,7 @@ const displayData = computed(() => {
   border-radius: 4px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .badge.danger {
@@ -759,6 +781,7 @@ const displayData = computed(() => {
   color: #4b5563;
   line-height: 1.6;
   margin: 0 0 20px 0;
+  word-break: break-word;
 }
 
 /* Section 01: Config Grid / Stat Cards */
@@ -785,12 +808,14 @@ const displayData = computed(() => {
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.5px;
+  line-height: 1.3;
 }
 
 .config-item-value {
   font-size: 22px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
+  line-height: 1.2;
 }
 
 .unit {
@@ -818,6 +843,8 @@ const displayData = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 10px;
 }
 
@@ -860,7 +887,8 @@ const displayData = computed(() => {
 
 .spectrum-legend {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .legend-item {
@@ -875,44 +903,54 @@ const displayData = computed(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .dot.critical { background: #ef4444; }
 .dot.neutral { background: #f59e0b; }
 .dot.support { background: #10b981; }
 
-/* Sub Parameters Grid */
+/* Sub Parameters Grid - Teks Lengkap Tanpa Ellipsis */
 .sub-parameters-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
 .sub-item {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sub-item-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .sub-key {
   font-size: 11.5px;
   color: #6b7280;
-  font-weight: 600;
-  min-width: 115px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .sub-val {
   font-size: 13px;
   font-weight: 600;
   color: #111827;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.55;
+  margin: 0;
+  word-break: break-word;
+  white-space: normal;
+  overflow: visible;
 }
 
 .sub-tag {
@@ -921,6 +959,7 @@ const displayData = computed(() => {
   padding: 2px 8px;
   border-radius: 4px;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .tag-orange {
@@ -965,33 +1004,41 @@ const displayData = computed(() => {
   font-family: 'JetBrains Mono', monospace;
   color: #9ca3af;
   line-height: 1.2;
+  flex-shrink: 0;
 }
 
 .finding-body {
   flex: 1;
+  min-width: 0;
 }
 
 .finding-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 8px;
 }
 
 .finding-title {
   font-size: 14.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: #111827;
+  line-height: 1.45;
   margin: 0;
+  flex: 1;
+  word-break: break-word;
 }
 
 .finding-badge {
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
   letter-spacing: 0.5px;
-  font-family: monospace;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .badge-danger {
@@ -1015,8 +1062,9 @@ const displayData = computed(() => {
 .finding-desc {
   font-size: 13px;
   color: #374151;
-  line-height: 1.6;
+  line-height: 1.65;
   margin: 0;
+  word-break: break-word;
 }
 
 /* Section 03: Stakeholder Matrix */
@@ -1047,6 +1095,12 @@ const displayData = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 10px;
+}
+
+.stk-meta {
+  flex: 1;
+  min-width: 0;
 }
 
 .stk-category {
@@ -1055,6 +1109,7 @@ const displayData = computed(() => {
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.5px;
+  display: block;
 }
 
 .stk-name {
@@ -1062,15 +1117,19 @@ const displayData = computed(() => {
   font-weight: 700;
   color: #111827;
   margin: 2px 0 0 0;
+  line-height: 1.35;
+  word-break: break-word;
 }
 
 .stk-stance-pill {
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
   letter-spacing: 0.5px;
-  font-family: monospace;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .stance-opposing {
@@ -1145,8 +1204,9 @@ const displayData = computed(() => {
 .concern-text {
   font-size: 12.5px;
   color: #1f2937;
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0;
+  word-break: break-word;
 }
 
 /* Section 04: Stop-Start-Continue Columns */
@@ -1171,6 +1231,7 @@ const displayData = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
 .stop-col .action-col-header {
@@ -1194,6 +1255,7 @@ const displayData = computed(() => {
   padding: 3px 8px;
   border-radius: 4px;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .pill-stop {
@@ -1216,6 +1278,7 @@ const displayData = computed(() => {
   color: #6b7280;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .action-col-body {
@@ -1243,13 +1306,15 @@ const displayData = computed(() => {
   color: #111827;
   margin: 0 0 4px 0;
   line-height: 1.4;
+  word-break: break-word;
 }
 
 .action-item-desc {
   font-size: 12px;
   color: #4b5563;
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0;
+  word-break: break-word;
 }
 
 /* Section 05: Quotes Grid */
@@ -1281,12 +1346,15 @@ const displayData = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
 .quote-agent-info {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .quote-agent-badge {
@@ -1298,30 +1366,36 @@ const displayData = computed(() => {
   padding: 2px 6px;
   border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .quote-agent-name {
   font-size: 12.5px;
   font-weight: 700;
   color: #111827;
+  word-break: break-word;
 }
 
 .quote-text {
   font-size: 12px;
   font-style: italic;
   color: #1f2937;
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
   padding: 8px 12px;
   background: #ffffff;
   border-radius: 0 4px 4px 0;
   border-left: 3px solid #2563eb;
+  word-break: break-word;
 }
 
 .quote-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   font-size: 10.5px;
   color: #6b7280;
   padding-top: 6px;
@@ -1336,12 +1410,43 @@ const displayData = computed(() => {
   color: #2563eb;
   font-weight: 600;
   font-family: 'JetBrains Mono', monospace;
+  word-break: break-all;
 }
 
-@media (max-width: 1200px) {
+/* ==========================================================================
+   Container Queries & Responsive Layout
+   Adapts perfectly whether full-screen or side-by-side in "Bagi Dua" workspace
+   ========================================================================== */
+@container eksum-container (max-width: 820px) {
   .config-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .sub-parameters-grid {
+    grid-template-columns: 1fr;
+  }
+  .stakeholder-grid {
+    grid-template-columns: 1fr;
+  }
+  .action-columns {
+    grid-template-columns: 1fr;
+  }
+  .quotes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@container eksum-container (max-width: 480px) {
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Media Query Fallbacks for Browsers */
+@media (max-width: 1024px) {
+  .config-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sub-parameters-grid,
   .stakeholder-grid,
   .action-columns,
   .quotes-grid {
