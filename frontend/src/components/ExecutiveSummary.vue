@@ -1,267 +1,395 @@
 <template>
-  <div class="executive-summary-container">
-    <!-- Sub-Bar Info Singkat (Tanpa Duplikasi Judul) -->
-    <div class="eksum-meta-banner">
-      <div class="meta-left">
-        <span class="badge-intel">EXECUTIVE INTELLIGENCE BRIEF</span>
-        <span class="meta-subtitle">Analisis Prediksi Dinamika Opini & Kebijakan Berbasis Swarm Intelligence</span>
-      </div>
-      <div class="meta-right">
-        <span class="meta-pill" v-if="simulationId">Simulasi: {{ simulationId }}</span>
-      </div>
-    </div>
-
-    <!-- 1. Risk & Sentiment Radar Barometer -->
-    <div class="eksum-section-card kpi-card">
-      <div class="kpi-header">
-        <div class="kpi-title-group">
-          <span class="icon-indicator">🚦</span>
-          <h3>Barometer Risiko & Dinamika Polarisasi Opini</h3>
+  <div class="executive-summary-wrapper">
+    <!-- Section 01: Indikator & Metrik Risiko -->
+    <div class="step-card">
+      <div class="card-header">
+        <div class="step-info">
+          <span class="step-num">01</span>
+          <span class="step-title">Indeks Kerentanan Friksi Sosial & Polarisasi Opini</span>
         </div>
-        <span class="risk-badge" :class="riskLevelClass">
-          {{ riskLevelText }}
-        </span>
-      </div>
-
-      <div class="kpi-grid">
-        <!-- Metric 1: Skor Risiko -->
-        <div class="kpi-box">
-          <div class="kpi-val-row">
-            <span class="kpi-val text-red">78</span>
-            <span class="kpi-max">/100</span>
-          </div>
-          <span class="kpi-desc">Indeks Kerentanan Friksi Sosial</span>
-          <span class="kpi-sub">Zona Waspada Tinggi</span>
-        </div>
-
-        <!-- Metric 2: Polarisasi Bar -->
-        <div class="kpi-box bar-box">
-          <div class="polarization-bar-header">
-            <span class="p-label">Spektrum Sentimen Opini Publik</span>
-            <span class="p-ratio">64% Kritis : 15% Dukung</span>
-          </div>
-          <div class="multi-progress-bar">
-            <div class="bar-seg negative" style="width: 64%" title="Sentimen Kritis/Menolak: 64%">64%</div>
-            <div class="bar-seg neutral" style="width: 21%" title="Netral/Waspada: 21%">21%</div>
-            <div class="bar-seg positive" style="width: 15%" title="Mendukung: 15%">15%</div>
-          </div>
-          <div class="legend-row">
-            <span class="legend-dot negative"></span><span>Kritis/Resisten (64%)</span>
-            <span class="legend-dot neutral"></span><span>Menunggu/Netral (21%)</span>
-            <span class="legend-dot positive"></span><span>Mendukung (15%)</span>
-          </div>
-        </div>
-
-        <!-- Metric 3: Tren Arah -->
-        <div class="kpi-box">
-          <div class="kpi-val-row">
-            <span class="kpi-val text-amber">Eskalatif</span>
-            <span class="kpi-icon-trend">↗</span>
-          </div>
-          <span class="kpi-desc">Arah Pergerakan Sentimen</span>
-          <span class="kpi-sub">Potensi Boikot Digital</span>
+        <div class="step-status">
+          <span class="badge danger">STATUS: RISIKO TINGGI (78/100)</span>
         </div>
       </div>
-    </div>
 
-    <!-- 2. The Bottom Line (3 Temuan Paling Krusial) -->
-    <div class="eksum-section-card">
-      <div class="section-title-row">
-        <span class="icon-indicator">⚡</span>
-        <h3>The Bottom Line: 3 Temuan Kunci Paling Krusial</h3>
-      </div>
-      <div class="insights-grid">
-        <div class="insight-box box-red">
-          <div class="insight-badge">01. Jurang Resonansi</div>
-          <h4>Klarifikasi Teknis Dibalikkan Menjadi Bukti Beban Rakyat</h4>
-          <p>
-            Penjelasan normatif mengenai penegakan aturan dan kesetaraan berusaha gagal meredam sinisme publik. Di media sosial, pesan resmi justru dibingkai ulang sebagai upaya menutup defisit anggaran dengan menekan ekonomi masyarakat kecil.
-          </p>
-        </div>
+      <div class="card-content">
+        <p class="api-note">METRICS /swarms/sentiment-analysis/v2</p>
+        <p class="description">
+          Pengukuran kuantitatif sentimen terpolarisasi, rasio resistensi aktif, dan proyeksi eskalasi publik dari simulasi multi-agen berskala 35 ronde.
+        </p>
 
-        <div class="insight-box box-amber">
-          <div class="insight-badge">02. Efek Price Pass-Through</div>
-          <h4>Beban Biaya Dialihkan Langsung ke Konsumen Akhir</h4>
-          <p>
-            Pelaku usaha bermargin tipis tidak menyerap pemotongan biaya sendiri, melainkan langsung menaikkan harga etalase sebesar 5–10%. Dampaknya, isu kepatuhan fiskal bertransformasi menjadi krisis daya beli kelas menengah.
-          </p>
-        </div>
-
-        <div class="insight-box box-blue">
-          <div class="insight-badge">03. Konvergensi Koalisi</div>
-          <h4>Konvergensi Narasi Melahirkan Front Penolakan Bersama</h4>
-          <p>
-            Keluhan pedagang daring mengenai margin tipis bertemu dengan kemarahan konsumen atas kenaikan harga. Kedua kelompok ini melebur membentuk koalisi penolakan yang diperkuat tagar viral di ruang percakapan publik.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Matriks Sikap 4 Kubu Stakeholder -->
-    <div class="eksum-section-card">
-      <div class="section-title-row">
-        <span class="icon-indicator">🗺️</span>
-        <h3>Peta Sikap & Polarisasi 4 Kluster Stakeholder</h3>
-      </div>
-      <div class="stakeholders-grid">
-        <!-- Kubu 1: Pendukung -->
-        <div class="stakeholder-card st-support">
-          <div class="st-header">
-            <span class="st-icon">🟢</span>
-            <span class="st-title">Kubu Pendukung Naratif</span>
+        <!-- Config Grid (4 Stat Cards) -->
+        <div class="config-grid">
+          <div class="config-item">
+            <span class="config-item-label">Indeks Kerentanan</span>
+            <span class="config-item-value text-danger">78 <small class="unit">/ 100</small></span>
           </div>
-          <div class="st-actors">Toko Fisik, Ritel Konvensional, Asosiasi Pasar</div>
-          <p class="st-body">
-            Menyambut kebijakan sebagai pemulihan keadilan bersaing yang telah lama tergerus perang harga daring. Namun kubu ini terisolasi secara sosial karena dukungannya dianggap tidak mewakili sentimen mayoritas warganet.
-          </p>
-        </div>
-
-        <!-- Kubu 2: Penentang Keras -->
-        <div class="stakeholder-card st-oppose">
-          <div class="st-header">
-            <span class="st-icon">🔴</span>
-            <span class="st-title">Kubu Penggerak Eskalasi</span>
+          <div class="config-item">
+            <span class="config-item-label">Sentimen Kritis / Penolakan</span>
+            <span class="config-item-value text-danger">64.0%</span>
           </div>
-          <div class="st-actors">Konsumen Akhir, Kelas Menengah, Warganet Kritis</div>
-          <p class="st-body">
-            Menjadi mesin penggerak eskalasi paling vokal. Mengubah isu regulasi menjadi isu ketidakadilan daya beli, memviralkan tagar penolakan, dan menuntut transparansi perincian biaya per transaksi secara terbuka.
-          </p>
-        </div>
-
-        <!-- Kubu 3: Terjepit / Kunci -->
-        <div class="stakeholder-card st-neutral">
-          <div class="st-header">
-            <span class="st-icon">🟡</span>
-            <span class="st-title">Kubu Penentu / Terjepit</span>
+          <div class="config-item">
+            <span class="config-item-label">Sentimen Netral / Observasi</span>
+            <span class="config-item-value text-neutral">21.0%</span>
           </div>
-          <div class="st-actors">Pedagang Daring, UMKM Mikro, Reseller, Dropshipper</div>
-          <p class="st-body">
-            Memiliki margin keuntungan sangat tipis. Menolak aksi boikot anarkis, namun terpaksa menaikkan harga jual demi bertahan hidup. Sikap kelompok ini adalah barometer utama kepatuhan riil di lapangan.
-          </p>
-        </div>
-
-        <!-- Kubu 4: Regulator & Platform -->
-        <div class="stakeholder-card st-regulator">
-          <div class="st-header">
-            <span class="st-icon">🔵</span>
-            <span class="st-title">Kubu Penjaga Sistem & Platform</span>
-          </div>
-          <div class="st-actors">Platform Lokapasar, Otoritas Regulasi, Fintech, Pakar Hukum</div>
-          <p class="st-body">
-            Mengkhawatirkan potensi penurunan volume transaksi (GMV) dan beban kesiapan infrastruktur IT. Aktif merilis klarifikasi hoaks dan menekankan pelindungan kerahasiaan data (UU PDP).
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. 3 Titik Kritis Friksi Sosial (Tipping Points) -->
-    <div class="eksum-section-card">
-      <div class="section-title-row">
-        <span class="icon-indicator">💥</span>
-        <h3>3 Titik Kritis Friksi Sosial (Key Tipping Points)</h3>
-      </div>
-      <div class="timeline-tipping-list">
-        <div class="tipping-item">
-          <div class="tipping-badge">Titik 1</div>
-          <div class="tipping-content">
-            <h4>Aktivasi Pemotongan Otomatis Serentak</h4>
-            <p>
-              Saat pemotongan serentak pertama kali dirasakan di dasbor transaksi, pedagang langsung bereaksi emosional dan membagikan tangkapan layar penyesuaian margin ke komunitas publik.
-            </p>
+          <div class="config-item">
+            <span class="config-item-label">Sentimen Mendukung</span>
+            <span class="config-item-value text-success">15.0%</span>
           </div>
         </div>
 
-        <div class="tipping-item">
-          <div class="tipping-badge">Titik 2</div>
-          <div class="tipping-content">
-            <h4>Penerusan Beban Harga ke Konsumen</h4>
-            <p>
-              Kenaikan harga barang di etalase daring langsung menyulut kemarahan konsumen kelas menengah, yang kemudian mengorganisir tagar protes dan memicu narasi boikot belanja.
-            </p>
+        <!-- Polarization Spectrum Bar -->
+        <div class="spectrum-container">
+          <div class="spectrum-header">
+            <span class="spectrum-title">SPEKTRUM DISTRIBUSI SENTIMEN</span>
+            <span class="spectrum-ratio">64% Kritis : 21% Netral : 15% Dukung</span>
+          </div>
+          <div class="spectrum-bar">
+            <div class="seg seg-danger" style="width: 64%" title="Kritis / Resisten: 64%">64%</div>
+            <div class="seg seg-warning" style="width: 21%" title="Netral / Mengamati: 21%">21%</div>
+            <div class="seg seg-success" style="width: 15%" title="Mendukung: 15%">15%</div>
+          </div>
+          <div class="spectrum-legend">
+            <span class="legend-item"><span class="dot dot-danger"></span>Kritis / Resisten (64%)</span>
+            <span class="legend-item"><span class="dot dot-warning"></span>Netral / Observasi (21%)</span>
+            <span class="legend-item"><span class="dot dot-success"></span>Mendukung (15%)</span>
           </div>
         </div>
 
-        <div class="tipping-item">
-          <div class="tipping-badge">Titik 3</div>
-          <div class="tipping-content">
-            <h4>Kepanikan Notifikasi & Kerahasiaan Data (UU PDP)</h4>
-            <p>
-              Notifikasi administratif otomatis menimbulkan kecemasan penyalahgunaan data perbankan, mendorong desakan uji publik dari praktisi hukum dan masyarakat sipil.
-            </p>
+        <!-- Dynamic Rows -->
+        <div class="time-periods">
+          <div class="period-item">
+            <span class="period-label">Arah Pergerakan</span>
+            <span class="period-hours">Eskalasi Resistensi Terorganisir (Potensi Boikot Belanja Digital)</span>
+            <span class="period-multiplier badge-warning">ESKALATIF</span>
+          </div>
+          <div class="period-item">
+            <span class="period-label">Fokus Gesekan</span>
+            <span class="period-hours">Penerusan Beban Harga ke Konsumen Akhir (Price Pass-Through)</span>
+            <span class="period-multiplier badge-danger">KRITIS</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 5. Rekomendasi Tindakan Strategis (Action Plan) -->
-    <div class="eksum-section-card">
-      <div class="section-title-row">
-        <span class="icon-indicator">🎯</span>
-        <h3>Rekomendasi Tindakan Strategis bagi Pengambil Keputusan</h3>
+    <!-- Section 02: Temuan Kunci Simulasi -->
+    <div class="step-card">
+      <div class="card-header">
+        <div class="step-info">
+          <span class="step-num">02</span>
+          <span class="step-title">Temuan Strategis Simulasi (The Bottom Line)</span>
+        </div>
+        <div class="step-status">
+          <span class="badge primary">3 TEMUAN KUNCI</span>
+        </div>
       </div>
-      <div class="action-grid">
-        <!-- STOP -->
-        <div class="action-card card-stop">
-          <div class="action-header">
-            <span class="action-tag tag-stop">🛑 STOP (Hentikan)</span>
-          </div>
-          <ul>
-            <li>Hentikan komunikasi satu arah yang bernada defensif atau memojokkan pelaku usaha kecil.</li>
-            <li>Hentikan desakan kepatuhan administratif serentak tanpa masa sosialisasi dan pendampingan teknis.</li>
-          </ul>
-        </div>
 
-        <!-- START -->
-        <div class="action-card card-start">
-          <div class="action-header">
-            <span class="action-tag tag-start">🚀 START (Mulai Lakukan)</span>
-          </div>
-          <ul>
-            <li>Terapkan batas ambang omzet pengaman (safeguard threshold) agar pedagang mikro tidak tertekan.</li>
-            <li>Sediakan dasbor transparansi bukti potong e-Bupot terpadu yang mudah diakses dan diaudit secara terbuka.</li>
-            <li>Buka kanal konsultasi cepat dan meja bantuan (*helpdesk*) bagi asosiasi pedagang.</li>
-          </ul>
-        </div>
+      <div class="card-content">
+        <p class="api-note">ANALYSIS /swarms/bottom-line-findings</p>
+        <p class="description">
+          Tiga dinamika kausalitas utama yang menggerakkan resistensi publik dan pergeseran opini lintas kluster.
+        </p>
 
-        <!-- CONTINUE -->
-        <div class="action-card card-continue">
-          <div class="action-header">
-            <span class="action-tag tag-continue">✅ CONTINUE (Lanjutkan)</span>
+        <div class="time-periods">
+          <div class="period-item interactive-row">
+            <div class="row-num mono">01</div>
+            <div class="row-content">
+              <div class="row-title">Jurang Resonansi (Klarifikasi Teknis Dibalikkan Menjadi Beban Rakyat)</div>
+              <div class="row-desc">
+                Penjelasan normatif mengenai penegakan aturan dan kesetaraan berusaha gagal meredam sinisme publik. Di media sosial, pesan resmi justru dibingkai ulang sebagai upaya menutup defisit anggaran dengan menekan ekonomi masyarakat kecil.
+              </div>
+            </div>
+            <span class="period-multiplier badge-danger">SEVERITY: HIGH</span>
           </div>
-          <ul>
-            <li>Lanjutkan koordinasi teknis bersama platform lokapasar untuk penyaringan informasi hoaks.</li>
-            <li>Pertahankan komitmen kepatuhan privasi data transaksi sesuai amanat UU Perlindungan Data Pribadi.</li>
-          </ul>
+
+          <div class="period-item interactive-row">
+            <div class="row-num mono">02</div>
+            <div class="row-content">
+              <div class="row-title">Efek Price Pass-Through (Beban Biaya Dialihkan ke Konsumen Akhir)</div>
+              <div class="row-desc">
+                Pelaku usaha bermargin tipis tidak menyerap pemotongan biaya sendiri, melainkan langsung menaikkan harga etalase sebesar 5–10%. Dampaknya, isu kepatuhan fiskal bertransformasi menjadi krisis daya beli masyarakat kelas menengah.
+              </div>
+            </div>
+            <span class="period-multiplier badge-warning">IMPACT: DIRECT</span>
+          </div>
+
+          <div class="period-item interactive-row">
+            <div class="row-num mono">03</div>
+            <div class="row-content">
+              <div class="row-title">Konvergensi Koalisi (Meleburnya Suara Pedagang dan Pembeli)</div>
+              <div class="row-desc">
+                Keluhan pedagang daring mengenai margin tipis bertemu dengan kemarahan konsumen atas kenaikan harga. Kedua kelompok ini melebur membentuk koalisi penolakan yang diperkuat tagar viral di ruang percakapan publik.
+              </div>
+            </div>
+            <span class="period-multiplier badge-primary">DYNAMIC: ACTIVE</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 6. Voice of the Swarm (Golden Quotes) -->
-    <div class="eksum-section-card quotes-card">
-      <div class="section-title-row">
-        <span class="icon-indicator">💬</span>
-        <h3>Suara Nyata Agen Simulasi (Voice of the Swarm)</h3>
+    <!-- Section 03: Pemetaan 4 Kubu Stakeholder -->
+    <div class="step-card">
+      <div class="card-header">
+        <div class="step-info">
+          <span class="step-num">03</span>
+          <span class="step-title">Pemetaan Sikap & Polarisasi Kluster Stakeholder</span>
+        </div>
+        <div class="step-status">
+          <span class="badge neutral">{{ filteredStakeholders.length }} KELOMPOK</span>
+        </div>
       </div>
-      <div class="quotes-grid">
-        <div class="quote-item">
-          <div class="quote-text">
-            "Kenapa beban akhirnya selalu mendarat di harga barang yang kami beli? Kami butuh perincian komponen biaya yang transparan, bukan sekadar imbauan normatif."
-          </div>
-          <div class="quote-author">— Konsumen Akhir / Kelas Menengah</div>
+
+      <div class="card-content">
+        <p class="api-note">MATRIX /swarms/stakeholder-clusters</p>
+        <p class="description">
+          Segmentasi kelompok aktor simulasi, distribusi sikap penolakan/dukungan, dan parameter pengaruh sosial.
+        </p>
+
+        <!-- Interactive Cluster Filter Bar -->
+        <div class="cluster-filter-bar">
+          <button 
+            v-for="filter in stanceFilters" 
+            :key="filter.key"
+            class="filter-pill"
+            :class="{ 'active': activeStanceFilter === filter.key }"
+            @click="activeStanceFilter = filter.key"
+          >
+            {{ filter.label }}
+          </button>
         </div>
 
-        <div class="quote-item">
-          <div class="quote-text">
-            "Margin kami sudah sangat tipis. Kenaikan harga 5–10% adalah respons terpaksa agar usaha kami tidak gulung tikar, bukan karena kami ingin melawan regulasi."
-          </div>
-          <div class="quote-author">— Pedagang Daring & Pelaku UMKM</div>
-        </div>
+        <!-- 2-Column Agent Style Cards -->
+        <div class="agents-cards">
+          <div 
+            v-for="stk in filteredStakeholders" 
+            :key="stk.id"
+            class="agent-card"
+            :class="{ 'card-highlighted': selectedCluster === stk.id }"
+            @click="toggleSelectCluster(stk.id)"
+          >
+            <div class="agent-card-header">
+              <div class="agent-identity">
+                <span class="agent-id">Cluster {{ stk.clusterId }}</span>
+                <span class="agent-name">{{ stk.name }}</span>
+              </div>
+              <div class="agent-tags">
+                <span class="agent-type">{{ stk.type }}</span>
+                <span class="agent-stance" :class="stk.stanceClass">{{ stk.stance }}</span>
+              </div>
+            </div>
 
-        <div class="quote-item">
-          <div class="quote-text">
-            "Kami mendukung persaingan yang sehat dan adil, asalkan pelaksanaannya benar-benar tidak menciptakan beban biaya kepatuhan baru bagi pedagang kecil."
+            <p class="cluster-narrative">{{ stk.narrative }}</p>
+
+            <div class="agent-params">
+              <div class="param-group">
+                <div class="param-item">
+                  <span class="param-label">Pangsa Resonansi</span>
+                  <div class="param-value with-bar">
+                    <span class="mini-bar" :style="{ width: stk.resonanceWidth }"></span>
+                    <span>{{ stk.resonance }}</span>
+                  </div>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">Bias Sentimen</span>
+                  <span class="param-value" :class="stk.sentimentClass">{{ stk.sentiment }}</span>
+                </div>
+                <div class="param-item">
+                  <span class="param-label">Skor Pengaruh</span>
+                  <span class="param-value highlight">{{ stk.influence }}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="quote-author">— Asosiasi Pelaku Usaha / Toko Pasar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 04: Titik Kritis Friksi Sosial -->
+    <div class="step-card">
+      <div class="card-header">
+        <div class="step-info">
+          <span class="step-num">04</span>
+          <span class="step-title">Titik Kritis Friksi Sosial (Key Social Tipping Points)</span>
+        </div>
+        <div class="step-status">
+          <span class="badge warning">3 TAHAPAN KRITIS</span>
+        </div>
+      </div>
+
+      <div class="card-content">
+        <p class="api-note">CHRONOLOGY /simulation-events/tipping-points</p>
+        <p class="description">
+          Tahapan krusial dalam simulasi yang memicu lonjakan eskalasi penolakan dan pergeseran sentimen publik secara masif.
+        </p>
+
+        <div class="time-periods">
+          <div class="period-item interactive-row">
+            <span class="period-label mono">TAHAP 01</span>
+            <div class="row-content">
+              <div class="row-title">Aktivasi Pemotongan Otomatis Serentak</div>
+              <div class="row-desc">
+                Saat pemotongan serentak pertama kali dirasakan di dasbor transaksi, pedagang langsung bereaksi emosional dan membagikan tangkapan layar penyesuaian margin ke komunitas publik.
+              </div>
+            </div>
+            <span class="period-multiplier badge-danger">PEMICU AWAL</span>
+          </div>
+
+          <div class="period-item interactive-row">
+            <span class="period-label mono">TAHAP 02</span>
+            <div class="row-content">
+              <div class="row-title">Penerusan Beban Harga ke Etalase Pembeli</div>
+              <div class="row-desc">
+                Kenaikan harga barang di etalase daring langsung menyulut kemarahan konsumen kelas menengah, yang kemudian mengorganisir tagar protes dan memicu narasi boikot belanja.
+              </div>
+            </div>
+            <span class="period-multiplier badge-warning">AMPLIFIKASI</span>
+          </div>
+
+          <div class="period-item interactive-row">
+            <span class="period-label mono">TAHAP 03</span>
+            <div class="row-content">
+              <div class="row-title">Kepanikan Notifikasi & Kerahasiaan Data (UU PDP)</div>
+              <div class="row-desc">
+                Notifikasi administratif otomatis menimbulkan kecemasan penyalahgunaan data perbankan, mendorong desakan uji publik dari praktisi hukum dan masyarakat sipil.
+              </div>
+            </div>
+            <span class="period-multiplier badge-primary">SENGKETA REGULASI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 05: Rekomendasi Tindakan Strategis -->
+    <div class="step-card">
+      <div class="card-header">
+        <div class="step-info">
+          <span class="step-num">05</span>
+          <span class="step-title">Rekomendasi Tindakan Strategis bagi Pengambil Keputusan</span>
+        </div>
+        <div class="step-status">
+          <span class="badge success">ACTION FRAMEWORK</span>
+        </div>
+      </div>
+
+      <div class="card-content">
+        <p class="api-note">POLICY /action-framework/stop-start-continue</p>
+        <p class="description">
+          Pedoman mitigasi berbasis bukti simulasi untuk mencegah boikot transaksi dan memulihkan kepatuhan sukarela.
+        </p>
+
+        <div class="action-columns">
+          <!-- STOP -->
+          <div class="action-card card-stop">
+            <div class="action-card-header">
+              <span class="badge danger">STOP (HENTIKAN)</span>
+              <span class="action-meta">Tindakan Kontraproduktif</span>
+            </div>
+            <ul class="action-list">
+              <li>Hentikan komunikasi satu arah yang bernada defensif atau memojokkan pelaku usaha kecil.</li>
+              <li>Hentikan desakan kepatuhan administratif serentak tanpa masa sosialisasi dan pendampingan teknis.</li>
+            </ul>
+          </div>
+
+          <!-- START -->
+          <div class="action-card card-start">
+            <div class="action-card-header">
+              <span class="badge primary">START (MULAI LAKUKAN)</span>
+              <span class="action-meta">Langkah Kunci Baru</span>
+            </div>
+            <ul class="action-list">
+              <li>Terapkan batas ambang omzet pengaman (safeguard threshold) agar pedagang mikro terlindungi.</li>
+              <li>Sediakan dasbor transparansi bukti potong e-Bupot terpadu yang mudah diaudit secara terbuka.</li>
+              <li>Buka kanal konsultasi cepat dan meja bantuan terintegrasi bagi asosiasi pedagang.</li>
+            </ul>
+          </div>
+
+          <!-- CONTINUE -->
+          <div class="action-card card-continue">
+            <div class="action-card-header">
+              <span class="badge success">CONTINUE (PERTAHANKAN)</span>
+              <span class="action-meta">Praktik Baik Berjalan</span>
+            </div>
+            <ul class="action-list">
+              <li>Lanjutkan koordinasi teknis bersama platform lokapasar untuk penyaringan disinformasi.</li>
+              <li>Pertahankan komitmen kepatuhan privasi data transaksi sesuai regulasi UU PDP.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 06: Representasi Respon Agen Simulasi -->
+    <div class="step-card">
+      <div class="card-header">
+        <div class="step-info">
+          <span class="step-num">06</span>
+          <span class="step-title">Representasi Respons Nyata Agen Simulasi</span>
+        </div>
+        <div class="step-status">
+          <span class="badge neutral">3 KUTIPAN KUNCI</span>
+        </div>
+      </div>
+
+      <div class="card-content">
+        <p class="api-note">VOICES /swarms/agent-dialogues/highlights</p>
+        <p class="description">
+          Sampel dialog paling representatif dari profil agen yang mencerminkan psikologi sentimen publik.
+        </p>
+
+        <div class="quotes-grid">
+          <div class="quote-card">
+            <div class="quote-header">
+              <div class="agent-identity">
+                <span class="agent-id">Agent 14</span>
+                <span class="agent-name">Konsumen Akhir / Kelas Menengah</span>
+              </div>
+              <span class="agent-stance stance-opposing">OPPOSING</span>
+            </div>
+            <blockquote class="quote-body">
+              "Kenapa beban akhirnya selalu mendarat di harga barang yang kami beli? Kami butuh perincian komponen biaya yang transparan, bukan sekadar imbauan normatif."
+            </blockquote>
+            <div class="quote-meta">
+              <span class="meta-item mono">Ronde: 24</span>
+              <span class="meta-item mono">Sentimen: -0.78</span>
+              <span class="meta-item mono">Topik: #TransparansiHarga</span>
+            </div>
+          </div>
+
+          <div class="quote-card">
+            <div class="quote-header">
+              <div class="agent-identity">
+                <span class="agent-id">Agent 08</span>
+                <span class="agent-name">Pedagang Daring & Pelaku UMKM Mikro</span>
+              </div>
+              <span class="agent-stance stance-neutral">NEUTRAL</span>
+            </div>
+            <blockquote class="quote-body">
+              "Margin kami sudah sangat tipis. Kenaikan harga 5–10% adalah respons terpaksa agar usaha kami tidak gulung tikar, bukan karena kami ingin melawan regulasi."
+            </blockquote>
+            <div class="quote-meta">
+              <span class="meta-item mono">Ronde: 18</span>
+              <span class="meta-item mono">Sentimen: -0.42</span>
+              <span class="meta-item mono">Topik: #MarginPedagang</span>
+            </div>
+          </div>
+
+          <div class="quote-card">
+            <div class="quote-header">
+              <div class="agent-identity">
+                <span class="agent-id">Agent 03</span>
+                <span class="agent-name">Asosiasi Pelaku Usaha / Toko Pasar Fisik</span>
+              </div>
+              <span class="agent-stance stance-supportive">SUPPORTIVE</span>
+            </div>
+            <blockquote class="quote-body">
+              "Kami mendukung persaingan yang sehat dan adil, asalkan pelaksanaannya benar-benar tidak menciptakan beban biaya kepatuhan baru bagi pedagang kecil."
+            </blockquote>
+            <div class="quote-meta">
+              <span class="meta-item mono">Ronde: 31</span>
+              <span class="meta-item mono">Sentimen: +0.35</span>
+              <span class="meta-item mono">Topik: #KeadilanBerusaha</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -269,7 +397,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   reportId: String,
@@ -279,483 +407,649 @@ const props = defineProps({
   sections: Array
 })
 
-const riskLevelClass = computed(() => 'risk-high')
-const riskLevelText = computed(() => 'RISIKO TINGGI (78/100)')
+// Stakeholder Filter State
+const activeStanceFilter = ref('ALL')
+const selectedCluster = ref(null)
+
+const stanceFilters = [
+  { key: 'ALL', label: 'SEMUA (4)' },
+  { key: 'OPPOSING', label: 'PENENTANG (1)' },
+  { key: 'NEUTRAL', label: 'TERJEPIT (1)' },
+  { key: 'SUPPORTIVE', label: 'PENDUKUNG (1)' },
+  { key: 'OBSERVER', label: 'REGULATOR (1)' }
+]
+
+const stakeholders = [
+  {
+    id: 'c1',
+    clusterId: '01',
+    name: 'Konsumen Akhir & Warganet Vokal',
+    type: 'Public',
+    stance: 'OPPOSING',
+    stanceClass: 'stance-opposing',
+    narrative: 'Menjadi motor penggerak eskalasi sentimen paling vokal di media sosial. Mengubah isu teknis perpajakan menjadi narasi ketidakadilan daya beli, menggalang solidaritas warganet, dan menuntut transparansi struktur biaya transaksi secara terbuka.',
+    resonance: '42%',
+    resonanceWidth: '42px',
+    sentiment: '-0.65',
+    sentimentClass: 'negative',
+    influence: '4.5'
+  },
+  {
+    id: 'c2',
+    clusterId: '02',
+    name: 'Pedagang Daring Mikro & Reseller',
+    type: 'Merchant',
+    stance: 'NEUTRAL',
+    stanceClass: 'stance-neutral',
+    narrative: 'Memiliki margin keuntungan tipis (3–8%). Menolak aksi anarkis atau penghindaran total, namun terpaksa menaikkan harga etalase demi menutup biaya kepatuhan. Menjadi kelompok penentu kepatuhan riil di lapangan.',
+    resonance: '28%',
+    resonanceWidth: '28px',
+    sentiment: '-0.35',
+    sentimentClass: 'negative',
+    influence: '3.8'
+  },
+  {
+    id: 'c3',
+    clusterId: '03',
+    name: 'Toko Fisik & Ritel Konvensional',
+    type: 'Retail',
+    stance: 'SUPPORTIVE',
+    stanceClass: 'stance-supportive',
+    narrative: 'Menyambut positif kebijakan sebagai pemulihan kesetaraan berusaha (level playing field) terhadap pasar daring. Namun posisinya terisolasi secara sosial karena dukungannya tidak mendapat gaung di media sosial.',
+    resonance: '14%',
+    resonanceWidth: '14px',
+    sentiment: '+0.45',
+    sentimentClass: 'positive',
+    influence: '2.4'
+  },
+  {
+    id: 'c4',
+    clusterId: '04',
+    name: 'Platform Lokapasar & Regulator',
+    type: 'System',
+    stance: 'OBSERVER',
+    stanceClass: 'stance-observer',
+    narrative: 'Mengkhawatirkan potensi penurunan Gross Merchandise Volume (GMV) dan kesiapan infrastruktur integrasi IT. Berfokus pada klarifikasi disinformasi dan kepatuhan privasi data transaksi sesuai UU PDP.',
+    resonance: '16%',
+    resonanceWidth: '16px',
+    sentiment: '+0.05',
+    sentimentClass: 'neutral',
+    influence: '4.8'
+  }
+]
+
+const filteredStakeholders = computed(() => {
+  if (activeStanceFilter.value === 'ALL') return stakeholders
+  return stakeholders.filter(s => s.stance === activeStanceFilter.value)
+})
+
+const toggleSelectCluster = (id) => {
+  selectedCluster.value = selectedCluster.value === id ? null : id
+}
 </script>
 
 <style scoped>
-.executive-summary-container {
+.executive-summary-wrapper {
   width: 100%;
   margin: 0;
   padding: 4px 0 32px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
-/* Meta Banner (Clean, Minimalist) */
-.eksum-meta-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+/* Step Card (Native MiroFish UI) */
+.step-card {
+  background: #FFFFFF;
+  border: 1px solid #EAEAEA;
   border-radius: 8px;
-  padding: 10px 16px;
-  margin-bottom: 2px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
 }
 
-.meta-left {
+.step-card:hover {
+  border-color: #CBD5E1;
+}
+
+.card-header {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.step-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-.badge-intel {
-  background: #2563eb;
-  color: #ffffff;
-  font-size: 10.5px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
+.step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.step-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.card-content {
+  padding: 20px;
+}
+
+.api-note {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #94A3B8;
+  margin: 0 0 6px 0;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.meta-subtitle {
-  font-size: 12.5px;
-  font-weight: 600;
+.description {
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.6;
+  margin: 0 0 18px 0;
+}
+
+/* Badges */
+.badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge.danger {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.badge.warning {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.badge.success {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.badge.primary {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.badge.neutral {
+  background: #F1F5F9;
   color: #475569;
 }
 
-.meta-right {
+/* Config Grid (4 Columns) */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.config-item {
+  background: #F9F9F9;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid #F1F5F9;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-item-label {
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.config-item-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.config-item-value .unit {
+  font-size: 13px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.text-danger { color: #DC2626; }
+.text-warning { color: #D97706; }
+.text-success { color: #16A34A; }
+.text-neutral { color: #64748B; }
+
+/* Spectrum Bar */
+.spectrum-container {
+  background: #F9F9F9;
+  border: 1px solid #F1F5F9;
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.spectrum-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.spectrum-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.05em;
+}
+
+.spectrum-ratio {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #DC2626;
+}
+
+.spectrum-bar {
+  display: flex;
+  height: 20px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #E2E8F0;
+}
+
+.seg {
   display: flex;
   align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.seg-danger { background: #EF4444; }
+.seg-warning { background: #F59E0B; color: #1E293B; }
+.seg-success { background: #10B981; }
+
+.spectrum-legend {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 11px;
+  color: #64748B;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot-danger { background: #EF4444; }
+.dot-warning { background: #F59E0B; }
+.dot-success { background: #10B981; }
+
+/* Time Periods & Rows */
+.time-periods {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.meta-pill {
+.period-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: #F9F9F9;
+  border-radius: 6px;
+  border: 1px solid #F1F5F9;
+  transition: all 0.15s ease;
+}
+
+.interactive-row:hover {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.period-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  min-width: 110px;
+}
+
+.period-hours {
+  font-size: 12.5px;
+  color: #334155;
+  flex: 1;
+}
+
+.period-multiplier {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #64748b;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.badge-danger { background: #FEE2E2; color: #DC2626; }
+.badge-warning { background: #FEF3C7; color: #D97706; }
+.badge-primary { background: #EFF6FF; color: #2563EB; }
+.badge-success { background: #DCFCE7; color: #16A34A; }
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.row-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: #94A3B8;
+  min-width: 24px;
+}
+
+.row-content {
+  flex: 1;
+}
+
+.row-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 2px;
+}
+
+.row-desc {
+  font-size: 12px;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+/* Cluster Filter Bar */
+.cluster-filter-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #E2E8F0;
+  background: #F9F9F9;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-pill:hover {
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+.filter-pill.active {
+  background: #0F172A;
+  color: #FFFFFF;
+  border-color: #0F172A;
+}
+
+/* Agents Cards (2-Columns matching Step2EnvSetup) */
+.agents-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.agent-card {
+  background: #F9F9F9;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  padding: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.agent-card:hover, .agent-card.card-highlighted {
+  border-color: #0284C7;
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.agent-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.agent-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agent-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+.agent-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.agent-tags {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.agent-type {
+  font-size: 10px;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.agent-stance {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 4px;
 }
 
-/* Standard Section Card */
-.eksum-section-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 20px 22px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
+.stance-neutral { background: #F1F5F9; color: #64748B; }
+.stance-supportive { background: #DCFCE7; color: #16A34A; }
+.stance-opposing { background: #FEE2E2; color: #DC2626; }
+.stance-observer { background: #FEF3C7; color: #D97706; }
 
-.section-title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.section-title-row h3 {
-  font-size: 16.5px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-}
-
-.icon-indicator {
-  font-size: 18px;
-}
-
-/* KPI Card & Grid */
-.kpi-card {
-  border-left: 4px solid #ef4444;
-}
-
-.kpi-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.kpi-title-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.kpi-title-group h3 {
-  font-size: 16.5px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-}
-
-.risk-badge {
+.cluster-narrative {
   font-size: 12px;
-  font-weight: 800;
-  padding: 4px 12px;
-  border-radius: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: #475569;
+  line-height: 1.55;
+  margin: 0 0 12px 0;
 }
 
-.risk-high {
-  background: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fca5a5;
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: 140px 1fr 150px;
-  gap: 16px;
-  align-items: stretch;
-}
-
-.kpi-box {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 14px 16px;
+.agent-params {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 6px;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 8px;
 }
 
-.kpi-val-row {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.kpi-val {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.kpi-max {
-  font-size: 14px;
-  color: #94a3b8;
-  font-weight: 600;
-}
-
-.kpi-desc {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #475569;
-  margin-top: 6px;
-}
-
-.kpi-sub {
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.text-red { color: #dc2626; }
-.text-amber { color: #d97706; }
-.kpi-icon-trend {
-  font-size: 20px;
-  color: #d97706;
-  font-weight: 800;
-}
-
-/* Multi Progress Bar */
-.bar-box {
-  padding: 14px 18px;
-}
-
-.polarization-bar-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 8px;
-}
-
-.p-ratio {
-  color: #dc2626;
-  font-family: monospace;
-}
-
-.multi-progress-bar {
-  display: flex;
-  height: 22px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #e2e8f0;
-}
-
-.bar-seg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #ffffff;
-  transition: all 0.3s ease;
-}
-
-.bar-seg.negative { background: #ef4444; }
-.bar-seg.neutral { background: #f59e0b; color: #1e293b; }
-.bar-seg.positive { background: #10b981; }
-
-.legend-row {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  margin-top: 8px;
-  font-size: 11px;
-  color: #64748b;
-}
-
-.legend-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: -10px;
-}
-.legend-dot.negative { background: #ef4444; }
-.legend-dot.neutral { background: #f59e0b; }
-.legend-dot.positive { background: #10b981; }
-
-/* The Bottom Line Cards */
-.insights-grid {
+.param-group {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-}
-
-.insight-box {
-  border-radius: 8px;
-  padding: 16px 18px;
-  border-left: 4px solid;
-}
-
-.box-red {
-  background: #fef2f2;
-  border-left-color: #ef4444;
-  border-top: 1px solid #fee2e2;
-  border-right: 1px solid #fee2e2;
-  border-bottom: 1px solid #fee2e2;
-}
-
-.box-amber {
-  background: #fffbeb;
-  border-left-color: #f59e0b;
-  border-top: 1px solid #fef3c7;
-  border-right: 1px solid #fef3c7;
-  border-bottom: 1px solid #fef3c7;
-}
-
-.box-blue {
-  background: #eff6ff;
-  border-left-color: #3b82f6;
-  border-top: 1px solid #dbeafe;
-  border-right: 1px solid #dbeafe;
-  border-bottom: 1px solid #dbeafe;
-}
-
-.insight-badge {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 8px;
-  opacity: 0.85;
-}
-
-.box-red .insight-badge { color: #dc2626; }
-.box-amber .insight-badge { color: #d97706; }
-.box-blue .insight-badge { color: #2563eb; }
-
-.insight-box h4 {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 8px 0;
-  line-height: 1.4;
-}
-
-.insight-box p {
-  font-size: 13px;
-  color: #475569;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* Stakeholder Matrix */
-.stakeholders-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-}
-
-.stakeholder-card {
-  border-radius: 8px;
-  padding: 16px 18px;
-  border: 1px solid #e2e8f0;
-}
-
-.st-support { background: #f0fdf4; border-color: #bbf7d0; }
-.st-oppose { background: #fef2f2; border-color: #fecaca; }
-.st-neutral { background: #fffbeb; border-color: #fef08a; }
-.st-regulator { background: #f8fafc; border-color: #e2e8f0; }
-
-.st-header {
-  display: flex;
-  align-items: center;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 6px;
 }
 
-.st-actors {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed rgba(0,0,0,0.08);
-}
-
-.st-body {
-  font-size: 12.5px;
-  color: #334155;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* Tipping Points */
-.timeline-tipping-list {
+.param-item {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+}
+
+.param-item .param-label {
+  font-size: 10px;
+  color: #94A3B8;
+}
+
+.param-item .param-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.param-value.with-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-bar {
+  height: 4px;
+  background: linear-gradient(90deg, #6366F1, #A855F7);
+  border-radius: 2px;
+  min-width: 4px;
+}
+
+.param-value.positive { color: #16A34A; }
+.param-value.negative { color: #DC2626; }
+.param-value.neutral { color: #64748B; }
+.param-value.highlight { color: #2563EB; }
+
+/* Action Columns (STOP - START - CONTINUE) */
+.action-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
-.tipping-item {
-  display: flex;
-  gap: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 14px 18px;
-}
-
-.tipping-badge {
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 4px 10px;
+.action-card {
+  background: #F9F9F9;
+  border: 1px solid #E5E5E5;
   border-radius: 6px;
-  height: fit-content;
-  white-space: nowrap;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
 }
 
-.tipping-content h4 {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 6px 0;
+.action-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #F1F5F9;
 }
 
-.tipping-content p {
-  font-size: 13px;
+.action-meta {
+  font-size: 11px;
+  color: #94A3B8;
+}
+
+.action-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
   color: #475569;
   line-height: 1.6;
-  margin: 0;
 }
 
-/* Action Plan (STOP - START - CONTINUE) */
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-}
-
-.action-card {
-  border-radius: 8px;
-  padding: 16px 18px;
-  border: 1px solid #e2e8f0;
-}
-
-.card-stop { background: #fef2f2; border-color: #fecaca; }
-.card-start { background: #f0fdf4; border-color: #bbf7d0; }
-.card-continue { background: #f8fafc; border-color: #e2e8f0; }
-
-.action-header {
-  margin-bottom: 12px;
-}
-
-.action-tag {
-  font-size: 12px;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 4px;
-}
-
-.tag-stop { background: #ef4444; color: #fff; }
-.tag-start { background: #10b981; color: #fff; }
-.tag-continue { background: #3b82f6; color: #fff; }
-
-.action-card ul {
-  margin: 0;
-  padding-left: 20px;
-  font-size: 12.5px;
-  color: #334155;
-  line-height: 1.65;
-}
-
-.action-card li {
+.action-list li {
   margin-bottom: 6px;
 }
 
-/* Quotes Card */
+/* Quotes Grid */
 .quotes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-.quote-item {
-  background: #f8fafc;
-  border-left: 3px solid #3b82f6;
-  border-radius: 0 8px 8px 0;
-  padding: 14px 16px;
+.quote-card {
+  background: #F9F9F9;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.quote-text {
-  font-size: 13px;
-  color: #334155;
+.quote-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.quote-body {
+  margin: 0 0 12px 0;
+  padding: 0;
+  font-size: 12px;
   font-style: italic;
+  color: #334155;
   line-height: 1.6;
-  margin-bottom: 8px;
 }
 
-.quote-author {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #64748b;
+.quote-meta {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 8px;
+  font-size: 10px;
+  color: #94A3B8;
 }
 
-@media (max-width: 800px) {
-  .kpi-grid {
+@media (max-width: 900px) {
+  .config-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .agents-cards, .action-columns, .quotes-grid {
     grid-template-columns: 1fr;
   }
 }

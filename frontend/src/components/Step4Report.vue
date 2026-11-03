@@ -44,8 +44,7 @@
                 :class="{ 'is-active': activeReportTab === 'eksum' }"
                 @click="activeReportTab = 'eksum'"
               >
-                <span class="tab-emoji">📊</span>
-                <span class="tab-label">Ringkasan Eksekutif (Eksum)</span>
+                <span class="tab-label">Ringkasan Eksekutif</span>
               </button>
               <button 
                 type="button"
@@ -53,7 +52,6 @@
                 :class="{ 'is-active': activeReportTab === 'full' }"
                 @click="activeReportTab = 'full'"
               >
-                <span class="tab-emoji">📖</span>
                 <span class="tab-label">Laporan Lengkap</span>
               </button>
             </div>

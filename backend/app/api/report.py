@@ -1206,7 +1206,7 @@ def get_printable_report(report_id: str):
             </div>
             <div class="kpi-trend">
               <span class="trend-lbl">Arah Sentimen</span>
-              <span class="trend-val">↗ Eskalatif</span>
+              <span class="trend-val">ESKALATIF</span>
             </div>
           </div>
         </div>
@@ -1233,21 +1233,21 @@ def get_printable_report(report_id: str):
         <!-- Rekomendasi STOP - START - CONTINUE -->
         <div class="eksum-action-print">
           <div class="act-col act-stop">
-            <h4>🛑 STOP (Hentikan)</h4>
+            <h4>STOP (Hentikan)</h4>
             <ul>
               <li>Hentikan komunikasi sepihak bernada defensif yang memojokkan pedagang kecil.</li>
               <li>Hentikan desakan kepatuhan serentak tanpa sosialisasi teknis lapangan.</li>
             </ul>
           </div>
           <div class="act-col act-start">
-            <h4>🚀 START (Mulai Lakukan)</h4>
+            <h4>START (Mulai Lakukan)</h4>
             <ul>
               <li>Tetapkan batas ambang omzet pengaman (safeguard) bagi pelaku UMKM mikro.</li>
               <li>Sediakan dasbor transparansi bukti potong e-Bupot terpadu dan kanal bantuan cepat.</li>
             </ul>
           </div>
           <div class="act-col act-continue">
-            <h4>✅ CONTINUE (Lanjutkan)</h4>
+            <h4>CONTINUE (Lanjutkan)</h4>
             <ul>
               <li>Lanjutkan koordinasi filter disinformasi bersama platform lokapasar.</li>
               <li>Pertahankan kepatuhan privasi data transaksi sesuai regulasi UU PDP.</li>
