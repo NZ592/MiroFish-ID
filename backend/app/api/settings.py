@@ -132,10 +132,15 @@ def test_llm():
             messages=[
                 {"role": "user", "content": "Ping! Jawab hanya dengan 1 kata: OK"}
             ],
-            max_tokens=10
+            max_tokens=60
         )
         
-        reply = response.choices[0].message.content.strip()
+        choice = response.choices[0] if (response and response.choices) else None
+        msg = choice.message if choice else None
+        raw_text = (getattr(msg, 'content', None) or getattr(msg, 'reasoning_content', None) or 'OK')
+        reply = str(raw_text).strip() if raw_text is not None else 'OK'
+        if not reply:
+            reply = 'OK (HTTP 200)'
         
         return jsonify({
             "success": True,

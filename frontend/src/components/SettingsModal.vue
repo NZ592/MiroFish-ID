@@ -39,21 +39,6 @@
       <div class="dialog-body">
         <!-- 1. LLM Tab -->
         <div v-if="currentTab === 'llm'" class="tab-panel">
-          <!-- Preset Selector -->
-          <div class="form-group">
-            <label class="form-label">{{ $t('settings.providerPreset') }}</label>
-            <select class="form-select" @change="applyPreset($event.target.value)">
-              <option value="">{{ $t('settings.selectProvider') }}</option>
-              <option value="tokenkoding">TokenKoding.id (DeepSeek V4 Flash / Pro)</option>
-              <option value="gemini">Google Gemini (Gemini 1.5/2.0 Flash/Pro)</option>
-              <option value="deepseek">DeepSeek Official (V3 / R1)</option>
-              <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
-              <option value="qwen">Alibaba DashScope (Qwen-Plus / Qwen-Turbo)</option>
-              <option value="groq">Groq (Ultra Fast Llama 3.3)</option>
-              <option value="ollama">Ollama (Lokal / Gratis / Offline)</option>
-            </select>
-          </div>
-
           <!-- Base URL -->
           <div class="form-group">
             <label class="form-label">{{ $t('settings.baseUrl') }}</label>
@@ -216,53 +201,6 @@ const form = reactive({
   zep_api_key: '',
   simulation_timezone: 'WIB'
 })
-
-const presets = {
-  tokenkoding: {
-    base_url: 'https://api.tokenkoding.id/v1',
-    model_name: 'deepseek-v4-flash',
-    model_tier2: 'deepseek-v4-flash'
-  },
-  gemini: {
-    base_url: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-    model_name: 'gemini-1.5-flash',
-    model_tier2: 'gemini-1.5-flash'
-  },
-  deepseek: {
-    base_url: 'https://api.deepseek.com',
-    model_name: 'deepseek-chat',
-    model_tier2: 'deepseek-chat'
-  },
-  openai: {
-    base_url: 'https://api.openai.com/v1',
-    model_name: 'gpt-4o-mini',
-    model_tier2: 'gpt-4o-mini'
-  },
-  qwen: {
-    base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    model_name: 'qwen-plus',
-    model_tier2: 'qwen-turbo'
-  },
-  groq: {
-    base_url: 'https://api.groq.com/openai/v1',
-    model_name: 'llama-3.3-70b-versatile',
-    model_tier2: 'llama-3.3-70b-versatile'
-  },
-  ollama: {
-    base_url: 'http://localhost:11434/v1',
-    model_name: 'qwen2.5:7b',
-    model_tier2: 'qwen2.5:7b'
-  }
-}
-
-const applyPreset = (key) => {
-  if (!key || !presets[key]) return
-  const preset = presets[key]
-  form.llm_base_url = preset.base_url
-  form.llm_model_name = preset.model_name
-  form.llm_model_tier2 = preset.model_tier2
-  testResult.value = null
-}
 
 const fetchCurrentConfig = async () => {
   try {
