@@ -1,14 +1,14 @@
 <template>
   <div class="executive-summary-container">
-    <!-- Top Header Bar -->
-    <div class="eksum-hero">
-      <div class="hero-tag-row">
-        <span class="badge-intel">Executive Intelligence Brief</span>
-        <span class="badge-id">ID: {{ reportId || 'EKSUM-PRED' }}</span>
-        <span class="badge-sim">Simulasi: {{ simulationId || '-' }}</span>
+    <!-- Sub-Bar Info Singkat (Tanpa Duplikasi Judul) -->
+    <div class="eksum-meta-banner">
+      <div class="meta-left">
+        <span class="badge-intel">EXECUTIVE INTELLIGENCE BRIEF</span>
+        <span class="meta-subtitle">Analisis Prediksi Dinamika Opini & Kebijakan Berbasis Swarm Intelligence</span>
       </div>
-      <h2 class="eksum-title">{{ title || 'Ringkasan Eksekutif Prediksi Dinamika Sosial & Opini Publik' }}</h2>
-      <p class="eksum-lead" v-if="summary">{{ summary }}</p>
+      <div class="meta-right">
+        <span class="meta-pill" v-if="simulationId">Simulasi: {{ simulationId }}</span>
+      </div>
     </div>
 
     <!-- 1. Risk & Sentiment Radar Barometer -->
@@ -285,74 +285,72 @@ const riskLevelText = computed(() => 'RISIKO TINGGI (78/100)')
 
 <style scoped>
 .executive-summary-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 10px 0 40px 0;
+  width: 100%;
+  margin: 0;
+  padding: 4px 0 32px 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
-/* Hero Section */
-.eksum-hero {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.3) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 12px;
-  padding: 24px 28px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+/* Meta Banner (Clean, Minimalist) */
+.eksum-meta-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 2px;
 }
 
-.hero-tag-row {
+.meta-left {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
 }
 
 .badge-intel {
   background: #2563eb;
   color: #ffffff;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
-  padding: 3px 10px;
+  padding: 3px 8px;
   border-radius: 4px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
-.badge-id, .badge-sim {
-  font-family: monospace;
-  font-size: 11.5px;
-  color: #94a3b8;
-  background: rgba(255, 255, 255, 0.08);
+.meta-subtitle {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.meta-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meta-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #64748b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   padding: 2px 8px;
   border-radius: 4px;
-}
-
-.eksum-title {
-  font-size: 24px;
-  font-weight: 800;
-  color: #f8fafc;
-  line-height: 1.35;
-  margin: 0 0 12px 0;
-}
-
-.eksum-lead {
-  font-size: 14.5px;
-  color: #cbd5e1;
-  line-height: 1.6;
-  margin: 0;
-  font-style: italic;
 }
 
 /* Standard Section Card */
 .eksum-section-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 22px 26px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .section-title-row {

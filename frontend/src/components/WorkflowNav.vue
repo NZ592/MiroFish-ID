@@ -1,27 +1,28 @@
 <template>
   <nav class="workflow-nav" aria-label="Alur Kerja Simulasi">
-    <button
-      v-for="step in steps"
-      :key="step.number"
-      class="nav-step-btn"
-      :class="{
-        'is-active': currentStep === step.number,
-        'is-enabled': step.enabled,
-        'is-disabled': !step.enabled
-      }"
-      :disabled="!step.enabled"
-      @click="goToStep(step.number)"
-      :title="step.tooltip"
-    >
-      <span class="step-badge">
-        <svg v-if="isStepPassed(step.number)" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <span v-else>{{ step.number }}</span>
-      </span>
-      <span class="step-text">{{ step.label }}</span>
-      <span v-if="step.number < 5" class="step-chevron">›</span>
-    </button>
+    <template v-for="(step, index) in steps" :key="step.number">
+      <button
+        class="nav-step-btn"
+        :class="{
+          'is-active': currentStep === step.number,
+          'is-passed': isStepPassed(step.number),
+          'is-enabled': step.enabled,
+          'is-disabled': !step.enabled
+        }"
+        :disabled="!step.enabled"
+        @click="goToStep(step.number)"
+        :title="step.tooltip"
+      >
+        <span class="step-badge">
+          <svg v-if="isStepPassed(step.number)" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span v-else>{{ step.number }}</span>
+        </span>
+        <span class="step-text">{{ step.shortLabel }}</span>
+      </button>
+      <span v-if="index < steps.length - 1" class="step-chevron">›</span>
+    </template>
   </nav>
 </template>
 
@@ -43,7 +44,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
-const { tm, t } = useI18n()
+const { tm } = useI18n()
 
 // Resolved IDs
 const activeProjectId = ref(props.projectId || sessionStorage.getItem('mirofish_active_project_id') || '')
@@ -59,21 +60,17 @@ const saveState = () => {
 
 // Auto resolve missing links
 const resolveMissingContext = async () => {
-  // If we have reportId, get simulationId and projectId
   if (activeReportId.value && (!activeSimulationId.value || !activeProjectId.value)) {
     try {
       const res = await getReport(activeReportId.value)
-      if (res.success && res.data) {
-        if (!activeSimulationId.value && res.data.simulation_id) {
-          activeSimulationId.value = res.data.simulation_id
-        }
+      if (res.success && res.data && !activeSimulationId.value && res.data.simulation_id) {
+        activeSimulationId.value = res.data.simulation_id
       }
     } catch (e) {
       // ignore
     }
   }
 
-  // If we have simulationId, get projectId
   if (activeSimulationId.value && !activeProjectId.value) {
     try {
       const res = await getSimulation(activeSimulationId.value)
@@ -85,7 +82,6 @@ const resolveMissingContext = async () => {
     }
   }
 
-  // If we have simulationId and need reportId
   if (activeSimulationId.value && !activeReportId.value) {
     try {
       const res = await getReportBySimulation(activeSimulationId.value)
@@ -127,7 +123,9 @@ onMounted(() => {
   resolveMissingContext()
 })
 
-const stepNames = computed(() => {
+const shortStepNames = ['Graf', 'Lingkungan', 'Simulasi', 'Laporan', 'Interaksi']
+
+const fullStepNames = computed(() => {
   const names = tm('main.stepNames') || []
   return [
     names[0] || 'Bangun Graf',
@@ -142,33 +140,33 @@ const steps = computed(() => {
   return [
     {
       number: 1,
-      label: stepNames.value[0],
+      shortLabel: shortStepNames[0],
       enabled: !!activeProjectId.value,
-      tooltip: activeProjectId.value ? `Menuju Step 1: ${stepNames.value[0]}` : 'Step 1 belum tersedia'
+      tooltip: activeProjectId.value ? `Step 1: ${fullStepNames.value[0]}` : 'Step 1 belum tersedia'
     },
     {
       number: 2,
-      label: stepNames.value[1],
+      shortLabel: shortStepNames[1],
       enabled: !!activeSimulationId.value,
-      tooltip: activeSimulationId.value ? `Menuju Step 2: ${stepNames.value[1]}` : 'Step 2 belum tersedia'
+      tooltip: activeSimulationId.value ? `Step 2: ${fullStepNames.value[1]}` : 'Step 2 belum tersedia'
     },
     {
       number: 3,
-      label: stepNames.value[2],
+      shortLabel: shortStepNames[2],
       enabled: !!activeSimulationId.value,
-      tooltip: activeSimulationId.value ? `Menuju Step 3: ${stepNames.value[2]}` : 'Step 3 belum tersedia'
+      tooltip: activeSimulationId.value ? `Step 3: ${fullStepNames.value[2]}` : 'Step 3 belum tersedia'
     },
     {
       number: 4,
-      label: stepNames.value[3],
+      shortLabel: shortStepNames[3],
       enabled: !!activeReportId.value,
-      tooltip: activeReportId.value ? `Menuju Step 4: ${stepNames.value[3]}` : 'Step 4 membutuhkan simulasi selesai'
+      tooltip: activeReportId.value ? `Step 4: ${fullStepNames.value[3]}` : 'Step 4 membutuhkan simulasi selesai'
     },
     {
       number: 5,
-      label: stepNames.value[4],
+      shortLabel: shortStepNames[4],
       enabled: !!activeReportId.value,
-      tooltip: activeReportId.value ? `Menuju Step 5: ${stepNames.value[4]}` : 'Step 5 membutuhkan laporan terbuat'
+      tooltip: activeReportId.value ? `Step 5: ${fullStepNames.value[4]}` : 'Step 5 membutuhkan laporan terbuat'
     }
   ]
 })
@@ -214,38 +212,39 @@ const goToStep = (stepNum) => {
 .workflow-nav {
   display: inline-flex;
   align-items: center;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 3px 6px;
+  padding: 2px 4px;
   gap: 2px;
 }
 
 .nav-step-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: transparent;
   border: none;
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
-  color: #94a3b8;
+  font-weight: 500;
+  color: #64748b;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .nav-step-btn.is-enabled:hover:not(.is-active) {
-  color: #f1f5f9;
-  background: rgba(255, 255, 255, 0.08);
+  color: #0f172a;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .nav-step-btn.is-active {
-  background: #2563eb;
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+  background: #ffffff;
+  color: #1d4ed8;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .nav-step-btn.is-disabled {
@@ -257,17 +256,22 @@ const goToStep = (stepNum) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   font-size: 10px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.12);
-  color: inherit;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.nav-step-btn.is-passed .step-badge {
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .nav-step-btn.is-active .step-badge {
-  background: rgba(255, 255, 255, 0.25);
+  background: #2563eb;
   color: #ffffff;
 }
 
@@ -277,12 +281,13 @@ const goToStep = (stepNum) => {
 }
 
 .step-chevron {
-  font-size: 13px;
-  color: #475569;
-  margin-left: 4px;
+  font-size: 11px;
+  color: #cbd5e1;
+  user-select: none;
+  margin: 0 1px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .step-text {
     display: none;
   }

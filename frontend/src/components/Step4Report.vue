@@ -2432,21 +2432,21 @@ const downloadMarkdown = () => {
 }
 
 .report-view-tab-nav {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   background: #f1f5f9;
-  padding: 4px;
+  padding: 3px;
   border-radius: 8px;
-  margin: 18px 0 0 0;
+  margin: 16px 0 6px 0;
   border: 1px solid #e2e8f0;
 }
 
 .report-tab-pill {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 6px;
   border: none;
   background: transparent;
@@ -2454,18 +2454,18 @@ const downloadMarkdown = () => {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .report-tab-pill:hover:not(.is-active) {
   color: #0f172a;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .report-tab-pill.is-active {
   background: #ffffff;
-  color: #2563eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .tab-emoji {

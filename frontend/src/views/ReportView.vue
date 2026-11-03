@@ -4,6 +4,8 @@
     <header class="app-header">
       <div class="header-left">
         <div class="brand" @click="router.push('/')">MIROFISH</div>
+        <div class="brand-divider"></div>
+        <WorkflowNav :currentStep="4" :reportId="currentReportId" :simulationId="simulationId" />
       </div>
       
       <div class="header-center">
@@ -25,8 +27,6 @@
           ⚙️
         </button>
         <LanguageSwitcher />
-        <div class="step-divider"></div>
-        <WorkflowNav :currentStep="4" :reportId="currentReportId" :simulationId="simulationId" />
         <div class="step-divider"></div>
         <span class="status-indicator" :class="statusClass">
           <span class="dot"></span>
@@ -235,21 +235,34 @@ onMounted(() => {
 
 /* Header */
 .app-header {
-  height: 60px;
+  height: 56px;
   border-bottom: 1px solid #EAEAEA;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 20px;
   background: #FFF;
   z-index: 100;
-  position: relative;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.brand-divider {
+  width: 1px;
+  height: 16px;
+  background-color: #E2E8F0;
 }
 
 .header-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand {
