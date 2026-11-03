@@ -2,19 +2,35 @@
   <div class="executive-summary-wrapper">
     <!-- Header Ringkasan Eksekutif -->
     <div class="eksum-hero-card">
-      <div class="hero-badge-group">
-        <span class="badge-type">RINGKASAN EKSEKUTIF</span>
-        <span class="badge-id">ID: {{ reportId || 'N/A' }}</span>
-        <span v-if="simulationId" class="badge-id">SIM: {{ simulationId }}</span>
+      <div class="hero-top-row">
+        <div class="hero-badge-group">
+          <span class="badge-type">RINGKASAN EKSEKUTIF</span>
+          <span class="badge-id">ID: {{ reportId || 'N/A' }}</span>
+          <span v-if="simulationId" class="badge-id">SIM: {{ simulationId }}</span>
+        </div>
+        <button 
+          class="btn-regenerate" 
+          :disabled="loading" 
+          @click="handleRegenerate"
+          title="Sintesis ulang seluruh eksum menggunakan AI"
+        >
+          <span v-if="loading" class="btn-spinner"></span>
+          <span v-else class="btn-icon">↺</span>
+          {{ loading ? 'Menyintesis dengan AI...' : 'Regenerasi AI' }}
+        </button>
       </div>
+
       <h2 class="hero-title">{{ displayData.title || title || 'Ringkasan Eksekutif Simulasi' }}</h2>
       <p class="hero-summary">{{ displayData.summary || summary || 'Analisis proyeksi strategis dan dinamika sosial berbasis simulasi multi-agen MiroFish.' }}</p>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="eksum-loading">
+    <!-- Loading State Overlay -->
+    <div v-if="loading && !remoteData" class="eksum-loading-card">
       <div class="spinner"></div>
-      <span>Memuat data ringkasan eksekutif dinamis...</span>
+      <div class="loading-text">
+        <strong>Menyusun Ringkasan Eksekutif dengan AI...</strong>
+        <span>Menganalisis perilaku agen, dinamika polarisasi, dan seluruh bab temuan simulasi.</span>
+      </div>
     </div>
 
     <template v-else>
@@ -27,7 +43,7 @@
           </div>
           <div class="step-status">
             <span :class="['badge', displayData.metrics.risk_class || 'danger']">
-              {{ displayData.metrics.risk_status || 'STATUS: RISIKO TINGGI' }}
+              {{ displayData.metrics.risk_status || 'STATUS: RISIKO TINGGI (70/100)' }}
             </span>
           </div>
         </div>
@@ -35,7 +51,7 @@
         <div class="card-content">
           <p class="api-note">METRICS /swarms/sentiment-analysis/v2</p>
           <p class="description">
-            {{ displayData.metrics.description || 'Pengukuran kuantitatif sentimen terpolarisasi, rasio resistensi aktif, dan proyeksi eskalasi publik.' }}
+            {{ displayData.metrics.description || 'Pengukuran kuantitatif sentimen terpolarisasi, rasio resistensi aktif, dan proyeksi eskalasi publik dari simulasi multi-agen.' }}
           </p>
 
           <!-- 4 Stat Cards -->
@@ -52,7 +68,7 @@
             </div>
             <div class="config-item">
               <span class="config-item-label">Sentimen Netral / Observasi</span>
-              <span class="config-item-value text-muted">{{ displayData.metrics.neutral_pct }}%</span>
+              <span class="config-item-value text-neutral">{{ displayData.metrics.neutral_pct }}%</span>
             </div>
             <div class="config-item">
               <span class="config-item-label">Sentimen Mendukung</span>
@@ -60,7 +76,7 @@
             </div>
           </div>
 
-          <!-- Spektrum Sentimen -->
+          <!-- Spektrum Sentimen Bar -->
           <div class="spectrum-box">
             <div class="spectrum-header">
               <span class="spectrum-title">SPEKTRUM DISTRIBUSI SENTIMEN</span>
@@ -127,7 +143,7 @@
         <div class="card-content">
           <p class="api-note">ANALYSIS /swarms/bottom-line-findings</p>
           <p class="description">
-            Dinamika kausalitas utama dan hasil observasi yang menggerakkan respons publik serta pergeseran posisi antar-aktor.
+            Dinamika kausalitas utama dan temuan kritis yang menggerakkan pergeseran persepsi publik serta resistensi institusional.
           </p>
 
           <div class="findings-list">
@@ -164,7 +180,7 @@
         <div class="card-content">
           <p class="api-note">STAKEHOLDERS /graph-rag/actor-matrix</p>
           <p class="description">
-            Identifikasi posisi, tingkat pengaruh, dan tuntutan esensial dari aktor-aktor sentral dalam jaringan simulasi.
+            Identifikasi posisi, bobot pengaruh, dan isu pokok tuntutan esensial dari aktor-aktor sentral dalam jaringan simulasi.
           </p>
 
           <div class="stakeholder-grid">
@@ -175,11 +191,14 @@
             >
               <div class="stk-top">
                 <div class="stk-meta">
-                  <span class="stk-category">{{ stk.category }}</span>
+                  <span class="stk-category">{{ stk.category || 'Aktor Simulasi' }}</span>
                   <h4 class="stk-name">{{ stk.name }}</h4>
                 </div>
-                <span :class="['stk-stance-pill', stk.stance_class || 'stance-opposing']">{{ stk.stance }}</span>
+                <span :class="['stk-stance-pill', stk.stance_class || 'stance-opposing']">
+                  {{ stk.stance }}
+                </span>
               </div>
+
               <div class="stk-metrics">
                 <div class="stk-metric">
                   <span class="m-label">Bobot Pengaruh</span>
@@ -187,14 +206,16 @@
                 </div>
                 <div class="stk-metric">
                   <span class="m-label">Bias Sentimen</span>
-                  <span :class="['m-val', Number(stk.sentiment) < 0 ? 'text-danger' : 'text-success']">
-                    {{ stk.sentiment > 0 ? '+' : '' }}{{ stk.sentiment }}
+                  <span :class="['m-val', String(stk.sentiment).startsWith('-') ? 'text-danger' : 'text-success']">
+                    {{ stk.sentiment }}
                   </span>
                 </div>
               </div>
-              <div class="stk-concern">
-                <span class="concern-label">Isu Pokok:</span>
-                <span class="concern-text">{{ stk.concern }}</span>
+
+              <!-- Isu Pokok Terisi Penuh dari Hasil Analisis AI -->
+              <div class="stk-concern-box">
+                <span class="concern-label">ISU POKOK & TUNTUTAN:</span>
+                <p class="concern-text">{{ stk.concern || 'Menuntut transparansi kebijakan, akuntabilitas prosedural, dan keterbukaan informasi publik.' }}</p>
               </div>
             </div>
           </div>
@@ -216,7 +237,7 @@
         <div class="card-content">
           <p class="api-note">POLICY-RECOMMENDATION /matrix/intervention-framework</p>
           <p class="description">
-            Panduan intervensi taktis dan komunikatif guna meredam friksi serta membangun kepatuhan sukarela.
+            Panduan intervensi taktis dan komunikasi krisis berbasis hasil simulasi guna meredam friksi dan memulihkan kepercayaan publik.
           </p>
 
           <div class="action-columns">
@@ -277,7 +298,7 @@
         </div>
       </div>
 
-      <!-- Section 05: Suara Lapangan / Kutipan Representatif -->
+      <!-- Section 05: Suara Lapangan / Kutipan Representatif Agen -->
       <div v-if="displayData.quotes && displayData.quotes.length > 0" class="step-card">
         <div class="card-header">
           <div class="step-info">
@@ -292,7 +313,7 @@
         <div class="card-content">
           <p class="api-note">EVIDENCE /simulation-logs/agent-dialogues</p>
           <p class="description">
-            Kutipan langsung dari interaksi percakapan agen yang mencerminkan sentimen dan persepsi autentik di lapangan.
+            Kutipan representatif dari percakapan simulasi multi-agen yang mencerminkan eskalasi sikap dan dinamika lapangan.
           </p>
 
           <div class="quotes-grid">
@@ -306,7 +327,9 @@
                   <span class="quote-agent-badge">{{ q.agent_id }}</span>
                   <span class="quote-agent-name">{{ q.agent_name }}</span>
                 </div>
-                <span :class="['stk-stance-pill', q.stanceClass || 'stance-opposing']">{{ q.stance }}</span>
+                <span :class="['stk-stance-pill', q.stanceClass || 'stance-opposing']">
+                  {{ q.stance }}
+                </span>
               </div>
               <blockquote class="quote-text">
                 "{{ q.quote }}"
@@ -357,30 +380,34 @@ const props = defineProps({
 const loading = ref(false)
 const remoteData = ref(null)
 
-const fetchEksumData = async () => {
+const fetchEksumData = async (refresh = false) => {
   if (!props.reportId) return
   loading.value = true
   try {
-    const res = await getExecutiveSummary(props.reportId)
+    const res = await getExecutiveSummary(props.reportId, refresh)
     if (res && res.data && res.data.success && res.data.data) {
       remoteData.value = res.data.data
     } else if (res && res.data && res.data.title) {
       remoteData.value = res.data
     }
   } catch (err) {
-    console.warn('[ExecutiveSummary] Menggunakan fallback data prop:', err)
+    console.warn('[ExecutiveSummary] Menggunakan data lokal/prop:', err)
   } finally {
     loading.value = false
   }
 }
 
+const handleRegenerate = () => {
+  fetchEksumData(true)
+}
+
 onMounted(() => {
-  fetchEksumData()
+  fetchEksumData(false)
 })
 
 watch(() => props.reportId, (newId) => {
   if (newId) {
-    fetchEksumData()
+    fetchEksumData(false)
   }
 })
 
@@ -389,7 +416,7 @@ const displayData = computed(() => {
     return remoteData.value
   }
 
-  // Fallback jika API belum selesai atau offline
+  // Fallback prop jika API belum merespons
   const totalRounds = props.simulationConfig?.time_config?.total_rounds || 40
   const agentConfigs = props.simulationConfig?.agent_configs || []
   const totalAgents = agentConfigs.length || 20
@@ -407,8 +434,8 @@ const displayData = computed(() => {
   })
 
   if (agentConfigs.length === 0) {
-    opposing = Math.round(totalAgents * 0.55)
-    neutral = Math.round(totalAgents * 0.30)
+    opposing = Math.round(totalAgents * 0.58)
+    neutral = Math.round(totalAgents * 0.22)
     supportive = totalAgents - opposing - neutral
   }
 
@@ -418,20 +445,20 @@ const displayData = computed(() => {
 
   const bottomLine = (props.sections || []).slice(0, 5).map((sec, idx) => ({
     number: idx + 1,
-    title: sec.title || `Temuan Bab ${idx + 1}`,
+    title: sec.title || `Temuan Strategis Bab ${idx + 1}`,
     severity: idx === 0 ? 'SEVERITY: HIGH' : idx === 1 ? 'IMPACT: DIRECT' : 'DYNAMIC: ACTIVE',
     badge_class: idx === 0 ? 'badge-danger' : idx === 1 ? 'badge-warning' : 'badge-primary',
-    description: sec.content ? sec.content.slice(0, 160).replace(/[#*`]/g, '') + '...' : 'Analisis strategis berdasarkan observasi interaksi simulasi multi-agen.'
+    description: sec.content ? sec.content.slice(0, 160).replace(/[#*`]/g, '') + '...' : 'Analisis mendalam terhadap respon aktor dan jalur propagasi isu berdasarkan observasi simulasi multi-agen.'
   }))
 
-  const stakeholders = agentConfigs.slice(0, 4).map(a => ({
-    name: a.entity_name || a.name || 'Aktor Simulasi',
-    category: a.category || 'Organisasi',
+  const stakeholders = agentConfigs.slice(0, 4).map((a, idx) => ({
+    name: a.entity_name || a.name || `Aktor Kunci ${idx + 1}`,
+    category: a.category || 'Organisasi / Institusi',
     stance: (a.stance || 'OPPOSING').toUpperCase(),
     stance_class: `stance-${(a.stance || 'opposing').toLowerCase()}`,
-    influence: a.influence ? a.influence.toFixed(1) : '2.5',
-    sentiment: a.sentiment_bias ? a.sentiment_bias.toFixed(2) : '-0.20',
-    concern: a.concern || 'Tuntutan kepatuhan, keadilan prosedural, dan transparansi kebijakan publik.'
+    influence: a.influence ? a.influence.toFixed(1) : '2.8',
+    sentiment: a.sentiment_bias ? a.sentiment_bias.toFixed(2) : '-0.25',
+    concern: a.concern || 'Menuntut transparansi kebijakan, keterbukaan bukti forensik, dan akuntabilitas prosedural menyeluruh.'
   }))
 
   return {
@@ -466,7 +493,7 @@ const displayData = computed(() => {
         stance_class: 'stance-opposing',
         influence: '2.8',
         sentiment: '-0.45',
-        concern: 'Kekhawatiran terhadap akuntabilitas dan perlindungan hak-hak masyarakat.'
+        concern: 'Kekhawatiran terhadap akuntabilitas prosedural dan jaminan perlindungan hak-hak masyarakat.'
       }
     ],
     recommendations: {
@@ -485,7 +512,7 @@ const displayData = computed(() => {
       continue_items: [
         {
           title: 'Komunikasi Proaktif Terbuka',
-          description: 'Pertahankan jalur pelaporan publik yang terverifikasi dan berikan update berkala secara terstruktur.'
+          description: 'Pertahankan jalur pelaporan publik yang terverifikasi dan berikan pembaruan secara berkala.'
         }
       ]
     },
@@ -495,25 +522,38 @@ const displayData = computed(() => {
 </script>
 
 <style scoped>
+/* ==========================================================================
+   MiroFish Native Light Theme Design System
+   Matches Step 1-3, White Cards, Crisp Borders, Clean Typography
+   ========================================================================== */
 .executive-summary-wrapper {
   display: flex;
   flex-direction: column;
   gap: 20px;
   width: 100%;
+  color: #111827;
 }
 
+/* Hero / Header Brief Card */
 .eksum-hero-card {
-  background: #252830;
-  border: 1px solid #363b47;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.hero-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .hero-badge-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
 }
 
 .badge-type {
@@ -521,64 +561,122 @@ const displayData = computed(() => {
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 4px;
-  background: #1890ff;
-  color: #fff;
+  background: #000000;
+  color: #ffffff;
   letter-spacing: 0.5px;
 }
 
 .badge-id {
   font-size: 11px;
-  color: #8c8c8c;
-  font-family: monospace;
+  color: #6b7280;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.btn-regenerate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-regenerate:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #111827;
+}
+
+.btn-regenerate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.btn-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .hero-title {
   font-size: 20px;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  color: #111827;
   line-height: 1.4;
   margin: 0 0 8px 0;
 }
 
 .hero-summary {
-  font-size: 13px;
-  color: #a0a6b5;
+  font-size: 13.5px;
+  color: #4b5563;
   line-height: 1.6;
   margin: 0;
 }
 
-.eksum-loading {
+/* Loading Card */
+.eksum-loading-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 40px;
-  background: #252830;
-  border: 1px solid #363b47;
+  gap: 16px;
+  padding: 30px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  color: #a0a6b5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.loading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.loading-text strong {
   font-size: 14px;
+  color: #111827;
+}
+
+.loading-text span {
+  font-size: 12.5px;
+  color: #6b7280;
 }
 
 .spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid #363b47;
-  border-top-color: #1890ff;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #2563eb;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Base Card Styling Matching MiroFish Theme */
+/* Base Step Card - MiroFish White Theme */
 .step-card {
-  background: #252830;
-  border: 1px solid #363b47;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+  transition: all 0.2s ease;
 }
 
 .card-header {
@@ -586,8 +684,8 @@ const displayData = computed(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #363b47;
-  background: #1e222b;
+  border-bottom: 1px solid #f3f4f6;
+  background: #ffffff;
 }
 
 .step-info {
@@ -597,48 +695,51 @@ const displayData = computed(() => {
 }
 
 .step-num {
-  font-size: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
   font-weight: 700;
-  font-family: monospace;
-  color: #fff;
+  color: #000000;
 }
 
 .step-title {
   font-size: 15px;
   font-weight: 600;
-  color: #e5e9f0;
+  color: #111827;
+  letter-spacing: 0.2px;
 }
 
+/* Status Badges */
 .step-status .badge {
   font-size: 11px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 4px;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .badge.danger {
-  background: rgba(245, 108, 108, 0.15);
-  color: #f56c6c;
-  border: 1px solid rgba(245, 108, 108, 0.3);
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .badge.warning {
-  background: rgba(230, 162, 60, 0.15);
-  color: #e6a23c;
-  border: 1px solid rgba(230, 162, 60, 0.3);
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
 }
 
 .badge.success {
-  background: rgba(103, 194, 58, 0.15);
-  color: #67c23a;
-  border: 1px solid rgba(103, 194, 58, 0.3);
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
 }
 
 .badge.info {
-  background: rgba(24, 144, 255, 0.15);
-  color: #1890ff;
-  border: 1px solid rgba(24, 144, 255, 0.3);
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
 }
 
 .card-content {
@@ -646,21 +747,21 @@ const displayData = computed(() => {
 }
 
 .api-note {
-  font-family: monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #7b8495;
-  margin: 0 0 4px 0;
+  color: #6b7280;
+  margin: 0 0 6px 0;
   letter-spacing: 0.5px;
 }
 
 .description {
   font-size: 13px;
-  color: #a0a6b5;
-  line-height: 1.5;
+  color: #4b5563;
+  line-height: 1.6;
   margin: 0 0 20px 0;
 }
 
-/* Config Grid / Stat Cards */
+/* Section 01: Config Grid / Stat Cards */
 .config-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -669,10 +770,10 @@ const displayData = computed(() => {
 }
 
 .config-item {
-  background: #1e222b;
-  border: 1px solid #363b47;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -680,33 +781,34 @@ const displayData = computed(() => {
 
 .config-item-label {
   font-size: 11px;
-  color: #8c96a8;
+  color: #6b7280;
   text-transform: uppercase;
+  font-weight: 600;
   letter-spacing: 0.5px;
 }
 
 .config-item-value {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  font-family: monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .unit {
   font-size: 12px;
   font-weight: 400;
-  color: #8c96a8;
+  color: #9ca3af;
 }
 
-.text-danger { color: #f56c6c; }
-.text-warning { color: #e6a23c; }
-.text-success { color: #67c23a; }
-.text-muted { color: #a0a6b5; }
-.text-primary { color: #1890ff; }
+.text-danger { color: #dc2626; }
+.text-warning { color: #d97706; }
+.text-success { color: #16a34a; }
+.text-neutral { color: #4b5563; }
+.text-primary { color: #2563eb; }
 
 /* Spektrum Sentimen Bar */
 .spectrum-box {
-  background: #1e222b;
-  border: 1px solid #363b47;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
   padding: 16px;
   margin-bottom: 20px;
@@ -722,23 +824,23 @@ const displayData = computed(() => {
 .spectrum-title {
   font-size: 11px;
   font-weight: 700;
-  color: #8c96a8;
+  color: #374151;
   letter-spacing: 0.5px;
 }
 
 .spectrum-ratio {
   font-size: 12px;
-  font-weight: 600;
-  font-family: monospace;
-  color: #e5e9f0;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: #111827;
 }
 
 .spectrum-bar {
   display: flex;
-  height: 18px;
+  height: 16px;
   border-radius: 4px;
   overflow: hidden;
-  background: #14171d;
+  background: #e5e7eb;
   margin-bottom: 12px;
 }
 
@@ -748,13 +850,13 @@ const displayData = computed(() => {
   justify-content: center;
   font-size: 10px;
   font-weight: 700;
-  color: #fff;
+  color: #ffffff;
   transition: width 0.4s ease;
 }
 
-.bar-segment.critical { background: #e5484d; }
-.bar-segment.neutral { background: #f5a623; }
-.bar-segment.support { background: #30a46c; }
+.bar-segment.critical { background: #ef4444; }
+.bar-segment.neutral { background: #f59e0b; }
+.bar-segment.support { background: #10b981; }
 
 .spectrum-legend {
   display: flex;
@@ -765,8 +867,8 @@ const displayData = computed(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
-  color: #8c96a8;
+  font-size: 11.5px;
+  color: #4b5563;
 }
 
 .legend-item .dot {
@@ -775,9 +877,9 @@ const displayData = computed(() => {
   border-radius: 50%;
 }
 
-.dot.critical { background: #e5484d; }
-.dot.neutral { background: #f5a623; }
-.dot.support { background: #30a46c; }
+.dot.critical { background: #ef4444; }
+.dot.neutral { background: #f59e0b; }
+.dot.support { background: #10b981; }
 
 /* Sub Parameters Grid */
 .sub-parameters-grid {
@@ -787,8 +889,8 @@ const displayData = computed(() => {
 }
 
 .sub-item {
-  background: #1e222b;
-  border: 1px solid #363b47;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
   padding: 12px 16px;
   display: flex;
@@ -797,15 +899,16 @@ const displayData = computed(() => {
 }
 
 .sub-key {
-  font-size: 11px;
-  color: #8c96a8;
-  min-width: 105px;
+  font-size: 11.5px;
+  color: #6b7280;
+  font-weight: 600;
+  min-width: 115px;
 }
 
 .sub-val {
-  font-size: 12px;
-  font-weight: 500;
-  color: #e5e9f0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -821,18 +924,18 @@ const displayData = computed(() => {
 }
 
 .tag-orange {
-  background: rgba(245, 166, 35, 0.15);
-  color: #f5a623;
-  border: 1px solid rgba(245, 166, 35, 0.3);
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
 }
 
 .tag-red {
-  background: rgba(229, 72, 77, 0.15);
-  color: #e5484d;
-  border: 1px solid rgba(229, 72, 77, 0.3);
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
-/* Findings List (Bottom Line) */
+/* Section 02: Findings List (Bottom Line) */
 .findings-list {
   display: flex;
   flex-direction: column;
@@ -840,20 +943,27 @@ const displayData = computed(() => {
 }
 
 .finding-item {
-  background: #1e222b;
-  border: 1px solid #363b47;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  padding: 14px 18px;
+  padding: 16px 20px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
+  transition: all 0.2s ease;
+}
+
+.finding-item:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .finding-num {
   font-size: 18px;
   font-weight: 700;
-  font-family: monospace;
-  color: #7b8495;
+  font-family: 'JetBrains Mono', monospace;
+  color: #9ca3af;
   line-height: 1.2;
 }
 
@@ -869,9 +979,9 @@ const displayData = computed(() => {
 }
 
 .finding-title {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 600;
-  color: #e5e9f0;
+  color: #111827;
   margin: 0;
 }
 
@@ -885,45 +995,52 @@ const displayData = computed(() => {
 }
 
 .badge-danger {
-  background: rgba(229, 72, 77, 0.15);
-  color: #e5484d;
-  border: 1px solid rgba(229, 72, 77, 0.3);
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .badge-warning {
-  background: rgba(245, 166, 35, 0.15);
-  color: #f5a623;
-  border: 1px solid rgba(245, 166, 35, 0.3);
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
 }
 
 .badge-primary {
-  background: rgba(24, 144, 255, 0.15);
-  color: #1890ff;
-  border: 1px solid rgba(24, 144, 255, 0.3);
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
 }
 
 .finding-desc {
-  font-size: 12.5px;
-  color: #a0a6b5;
-  line-height: 1.5;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.6;
   margin: 0;
 }
 
-/* Stakeholder Matrix */
+/* Section 03: Stakeholder Matrix */
 .stakeholder-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  gap: 16px;
 }
 
 .stakeholder-card {
-  background: #1e222b;
-  border: 1px solid #363b47;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.stakeholder-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .stk-top {
@@ -933,16 +1050,17 @@ const displayData = computed(() => {
 }
 
 .stk-category {
-  font-size: 10px;
-  color: #8c96a8;
+  font-size: 10.5px;
+  color: #6b7280;
   text-transform: uppercase;
+  font-weight: 600;
   letter-spacing: 0.5px;
 }
 
 .stk-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
   margin: 2px 0 0 0;
 }
 
@@ -956,28 +1074,35 @@ const displayData = computed(() => {
 }
 
 .stance-opposing {
-  background: rgba(229, 72, 77, 0.15);
-  color: #e5484d;
-  border: 1px solid rgba(229, 72, 77, 0.3);
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .stance-supportive {
-  background: rgba(48, 164, 108, 0.15);
-  color: #30a46c;
-  border: 1px solid rgba(48, 164, 108, 0.3);
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
 }
 
 .stance-neutral {
-  background: rgba(140, 150, 168, 0.15);
-  color: #a0a6b5;
-  border: 1px solid rgba(140, 150, 168, 0.3);
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+.stance-observer {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
 }
 
 .stk-metrics {
   display: flex;
   gap: 20px;
   padding: 8px 12px;
-  background: #14171d;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 4px;
 }
 
@@ -988,56 +1113,83 @@ const displayData = computed(() => {
 }
 
 .m-label {
-  font-size: 10px;
-  color: #8c96a8;
+  font-size: 10.5px;
+  color: #6b7280;
 }
 
 .m-val {
   font-size: 13px;
   font-weight: 700;
-  font-family: monospace;
-  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  color: #111827;
 }
 
-.stk-concern {
-  font-size: 12px;
-  line-height: 1.4;
-  color: #a0a6b5;
+/* Isu Pokok Box - Terisi Penuh dari Hasil AI */
+.stk-concern-box {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 10px 12px;
 }
 
 .concern-label {
-  font-weight: 600;
-  color: #8c96a8;
-  margin-right: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  display: block;
 }
 
-/* Stop-Start-Continue Columns */
+.concern-text {
+  font-size: 12.5px;
+  color: #1f2937;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Section 04: Stop-Start-Continue Columns */
 .action-columns {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 16px;
 }
 
 .action-col {
-  background: #1e222b;
-  border: 1px solid #363b47;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .action-col-header {
   padding: 12px 14px;
-  background: #161920;
-  border-bottom: 1px solid #363b47;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+.stop-col .action-col-header {
+  background: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+}
+
+.start-col .action-col-header {
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+}
+
+.continue-col .action-col-header {
+  background: #f0fdf4;
+  border-bottom: 1px solid #bbf7d0;
+}
+
 .col-pill {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 4px;
@@ -1045,24 +1197,25 @@ const displayData = computed(() => {
 }
 
 .pill-stop {
-  background: rgba(229, 72, 77, 0.2);
-  color: #e5484d;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .pill-start {
-  background: rgba(24, 144, 255, 0.2);
-  color: #1890ff;
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .pill-continue {
-  background: rgba(48, 164, 108, 0.2);
-  color: #30a46c;
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .col-count {
   font-size: 11px;
-  color: #8c96a8;
-  font-family: monospace;
+  color: #6b7280;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
 }
 
 .action-col-body {
@@ -1070,11 +1223,13 @@ const displayData = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: #ffffff;
+  flex: 1;
 }
 
 .action-item {
-  border-bottom: 1px solid #2a2f3a;
-  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 12px;
 }
 
 .action-item:last-child {
@@ -1084,34 +1239,42 @@ const displayData = computed(() => {
 
 .action-item-title {
   font-size: 13px;
-  font-weight: 600;
-  color: #e5e9f0;
+  font-weight: 700;
+  color: #111827;
   margin: 0 0 4px 0;
+  line-height: 1.4;
 }
 
 .action-item-desc {
   font-size: 12px;
-  color: #a0a6b5;
-  line-height: 1.4;
+  color: #4b5563;
+  line-height: 1.5;
   margin: 0;
 }
 
-/* Quotes Grid */
+/* Section 05: Quotes Grid */
 .quotes-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 16px;
 }
 
 .quote-card {
-  background: #1e222b;
-  border: 1px solid #363b47;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
   padding: 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.quote-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .quote-header {
@@ -1129,46 +1292,50 @@ const displayData = computed(() => {
 .quote-agent-badge {
   font-size: 10px;
   font-weight: 700;
-  background: #14171d;
-  color: #8c96a8;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
   padding: 2px 6px;
   border-radius: 4px;
-  font-family: monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .quote-agent-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #111827;
 }
 
 .quote-text {
   font-size: 12px;
   font-style: italic;
-  color: #d8dee9;
+  color: #1f2937;
   line-height: 1.5;
   margin: 0;
-  padding-left: 10px;
-  border-left: 2px solid #1890ff;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-radius: 0 4px 4px 0;
+  border-left: 3px solid #2563eb;
 }
 
 .quote-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 10px;
-  color: #8c96a8;
+  font-size: 10.5px;
+  color: #6b7280;
   padding-top: 6px;
-  border-top: 1px solid #2a2f3a;
+  border-top: 1px solid #e5e7eb;
 }
 
 .quote-meta {
-  font-family: monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .quote-tag {
-  color: #1890ff;
-  font-family: monospace;
+  color: #2563eb;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 @media (max-width: 1200px) {

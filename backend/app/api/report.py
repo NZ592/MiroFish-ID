@@ -486,10 +486,13 @@ def get_report(report_id: str):
 def get_report_eksum(report_id: str):
     """
     Dapatkan ringkasan eksekutif (Executive Summary) dinamis berbasis data simulasi aktual.
+    Mendukung query parameter ?refresh=true untuk melakukan regenerasi penuh menggunakan AI.
     """
     try:
+        from flask import request
         from ..services.eksum_service import generate_executive_summary
-        data = generate_executive_summary(report_id)
+        force_refresh = request.args.get('refresh', 'false').lower() in ('true', '1')
+        data = generate_executive_summary(report_id, force_refresh=force_refresh)
         return jsonify({
             "success": True,
             "data": data

@@ -51,11 +51,12 @@ export const getReport = (reportId) => {
 }
 
 /**
- * Dapatkan data Ringkasan Eksekutif (Eksum) dinamis
+ * Dapatkan data Ringkasan Eksekutif (Eksum) dinamis berbasis AI
  * @param {string} reportId
+ * @param {boolean} refresh
  */
-export const getExecutiveSummary = (reportId) => {
-  return service.get(`/api/report/${reportId}/eksum`)
+export const getExecutiveSummary = (reportId, refresh = false) => {
+  return service.get(`/api/report/${reportId}/eksum${refresh ? '?refresh=true' : ''}`)
 }
 
 /**
