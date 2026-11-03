@@ -117,6 +117,14 @@ def generate_report():
                 except Exception as term_err:
                     logger.warning(f"Gagal terminate proses simulasi: {term_err}")
 
+            # Pastikan Zep updater juga dihentikan agar tidak menghalangi pembuatan laporan
+            if updater is not None:
+                try:
+                    ZepGraphMemoryManager.stop_updater(simulation_id)
+                    updater = None
+                except Exception as up_err:
+                    logger.warning(f"Gagal stop updater: {up_err}")
+
         # Jika masih dalam proses awal yang benar-benar belum selesai
         if run_state is not None and run_state.runner_status in {RunnerStatus.STARTING, RunnerStatus.RUNNING} and not is_all_platforms_done:
             return jsonify({
@@ -211,9 +219,20 @@ def generate_report():
                     "success": False,
                     "error": "The project graph changed while reporting was starting",
                 }), 409
-            if refreshed_updater is not None or (
+            if is_all_platforms_done:
+                if refreshed_updater is not None:
+                    try:
+                        ZepGraphMemoryManager.stop_updater(simulation_id)
+                        refreshed_updater = None
+                    except Exception:
+                        pass
+                if refreshed_run_state is not None:
+                    refreshed_run_state.runner_status = RunnerStatus.COMPLETED
+
+            if (refreshed_updater is not None and not is_all_platforms_done) or (
                 refreshed_run_state is not None
                 and refreshed_run_state.runner_status in active_statuses
+                and not is_all_platforms_done
             ):
                 return jsonify({
                     "success": False,
