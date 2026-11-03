@@ -66,3 +66,28 @@ export const getExecutiveSummary = (reportId, refresh = false) => {
 export const chatWithReport = (data) => {
   return service.post('/api/report/chat', data)
 }
+
+/**
+ * Muat riwayat interaksi obrolan & survei secara persisten dari server
+ * @param {string} simulationId
+ */
+export const getInteractionHistory = (simulationId) => {
+  return service.get(`/api/report/interaction/history?simulation_id=${simulationId}`)
+}
+
+/**
+ * Simpan riwayat interaksi obrolan & survei secara persisten ke server
+ * @param {Object} data - { simulation_id, chat_cache, survey_results?, active_target? }
+ */
+export const saveInteractionHistory = (data) => {
+  return service.post('/api/report/interaction/history', data)
+}
+
+/**
+ * Hapus riwayat interaksi obrolan dari server
+ * @param {string} simulationId
+ * @param {string} target - 'all' atau 'report_agent' atau 'agent_X'
+ */
+export const deleteInteractionHistory = (simulationId, target = 'all') => {
+  return service.delete(`/api/report/interaction/history?simulation_id=${simulationId}&target=${target}`)
+}

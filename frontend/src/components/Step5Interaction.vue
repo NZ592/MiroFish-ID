@@ -217,6 +217,18 @@
               </svg>
               <span>{{ $t('step5.sendSurvey') }}</span>
             </button>
+            <button
+              v-if="activeTab === 'chat' && chatHistory.length > 0"
+              class="tab-pill clear-pill"
+              @click="clearCurrentChat"
+              title="Hapus riwayat obrolan sesi ini"
+            >
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Bersihkan Chat</span>
+            </button>
           </div>
         </div>
 
@@ -487,7 +499,14 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { chatWithReport, getReport, getAgentLog } from '../api/report'
+import { 
+  chatWithReport, 
+  getReport, 
+  getAgentLog, 
+  getInteractionHistory, 
+  saveInteractionHistory, 
+  deleteInteractionHistory 
+} from '../api/report'
 import { interviewAgents, getSimulationProfilesRealtime } from '../api/simulation'
 import ExecutiveSummary from './ExecutiveSummary.vue'
 
@@ -591,19 +610,147 @@ const selectChatTarget = (target) => {
   }
 }
 
-// 保存当前对话记录到缓存
+// Storage Helpers untuk persistensi obrolan & survei
+const getStorageKey = () => props.simulationId ? `mirofish_chat_history_${props.simulationId}` : null
+const getSurveyStorageKey = () => props.simulationId ? `mirofish_survey_history_${props.simulationId}` : null
+
+// Simpan riwayat obrolan secara persisten (localStorage + sync ke backend)
 const saveChatHistory = () => {
-  if (chatHistory.value.length === 0) return
+  const currentTargetKey = chatTarget.value === 'report_agent' 
+    ? 'report_agent' 
+    : (selectedAgentIndex.value !== null ? `agent_${selectedAgentIndex.value}` : null)
   
-  if (chatTarget.value === 'report_agent') {
-    chatHistoryCache.value['report_agent'] = [...chatHistory.value]
-  } else if (selectedAgentIndex.value !== null) {
-    chatHistoryCache.value[`agent_${selectedAgentIndex.value}`] = [...chatHistory.value]
+  if (currentTargetKey) {
+    chatHistoryCache.value[currentTargetKey] = [...chatHistory.value]
+  }
+
+  // 1. Simpan segera ke localStorage (instan, tahan reload peramban & geser step)
+  const storageKey = getStorageKey()
+  if (storageKey) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(chatHistoryCache.value))
+    } catch (e) {
+      console.warn('Gagal menyimpan riwayat obrolan ke localStorage:', e)
+    }
+  }
+
+  // 2. Sinkronisasi asinkron ke server backend (backup persisten disk)
+  if (props.simulationId) {
+    saveInteractionHistory({
+      simulation_id: props.simulationId,
+      chat_cache: chatHistoryCache.value,
+      survey_results: surveyResults.value,
+      active_target: chatTarget.value
+    }).catch(err => {
+      console.warn('Gagal sync riwayat obrolan ke server:', err)
+    })
+  }
+}
+
+// Muat riwayat obrolan dari localStorage dan sinkronkan dengan backend
+const loadChatHistory = async () => {
+  const storageKey = getStorageKey()
+  
+  // 1. Muat sinkron dari localStorage (seketika tanpa jeda/flicker)
+  if (storageKey) {
+    try {
+      const localData = localStorage.getItem(storageKey)
+      if (localData) {
+        const parsed = JSON.parse(localData)
+        if (parsed && typeof parsed === 'object') {
+          chatHistoryCache.value = parsed
+          if (chatTarget.value === 'report_agent') {
+            chatHistory.value = chatHistoryCache.value['report_agent'] || []
+          } else if (selectedAgentIndex.value !== null) {
+            chatHistory.value = chatHistoryCache.value[`agent_${selectedAgentIndex.value}`] || []
+          }
+          nextTick(() => scrollToBottom())
+        }
+      }
+    } catch (e) {
+      console.warn('Gagal memuat riwayat obrolan dari localStorage:', e)
+    }
+  }
+
+  // Muat riwayat survei dari localStorage
+  const surveyKey = getSurveyStorageKey()
+  if (surveyKey) {
+    try {
+      const localSurvey = localStorage.getItem(surveyKey)
+      if (localSurvey) {
+        const parsedSurvey = JSON.parse(localSurvey)
+        if (Array.isArray(parsedSurvey) && parsedSurvey.length > 0) {
+          surveyResults.value = parsedSurvey
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 2. Muat atau sinkronkan dari backend
+  if (props.simulationId) {
+    try {
+      const res = await getInteractionHistory(props.simulationId)
+      if (res && res.data && res.data.success && res.data.data) {
+        const serverData = res.data.data
+        if (serverData.chat_cache && Object.keys(serverData.chat_cache).length > 0) {
+          // Gabungkan data server dengan cache lokal
+          chatHistoryCache.value = { ...serverData.chat_cache, ...chatHistoryCache.value }
+          if (chatTarget.value === 'report_agent') {
+            chatHistory.value = chatHistoryCache.value['report_agent'] || []
+          } else if (selectedAgentIndex.value !== null) {
+            chatHistory.value = chatHistoryCache.value[`agent_${selectedAgentIndex.value}`] || []
+          }
+          nextTick(() => scrollToBottom())
+          if (storageKey) {
+            localStorage.setItem(storageKey, JSON.stringify(chatHistoryCache.value))
+          }
+        }
+        if (serverData.survey_results && (!surveyResults.value || surveyResults.value.length === 0)) {
+          surveyResults.value = serverData.survey_results
+          if (surveyKey) {
+            localStorage.setItem(surveyKey, JSON.stringify(surveyResults.value))
+          }
+        }
+      }
+    } catch (err) {
+      // Offline or network warning
+    }
+  }
+}
+
+// Bersihkan riwayat obrolan sesi aktif
+const clearCurrentChat = async () => {
+  const targetLabel = chatTarget.value === 'report_agent' 
+    ? 'ReportAgent' 
+    : (selectedAgent.value?.username || 'Agen ini')
+  
+  if (!confirm(`Hapus riwayat obrolan dengan ${targetLabel}?`)) return
+
+  const targetKey = chatTarget.value === 'report_agent' 
+    ? 'report_agent' 
+    : `agent_${selectedAgentIndex.value}`
+
+  chatHistory.value = []
+  if (chatHistoryCache.value[targetKey]) {
+    delete chatHistoryCache.value[targetKey]
+  }
+
+  const storageKey = getStorageKey()
+  if (storageKey) {
+    localStorage.setItem(storageKey, JSON.stringify(chatHistoryCache.value))
+  }
+
+  if (props.simulationId) {
+    try {
+      await deleteInteractionHistory(props.simulationId, targetKey)
+    } catch (e) {
+      console.warn('Gagal menghapus riwayat di server:', e)
+    }
   }
 }
 
 const selectReportAgentChat = () => {
-  // 保存当前对话记录
+  // Simpan obrolan target sebelumnya
   saveChatHistory()
   
   activeTab.value = 'chat'
@@ -612,11 +759,13 @@ const selectReportAgentChat = () => {
   selectedAgentIndex.value = null
   showAgentDropdown.value = false
   
-  // 恢复 Report Agent 的对话记录
+  // Pulihkan riwayat obrolan Report Agent
   chatHistory.value = chatHistoryCache.value['report_agent'] || []
+  nextTick(() => scrollToBottom())
 }
 
 const selectSurveyTab = () => {
+  saveChatHistory()
   activeTab.value = 'survey'
   selectedAgent.value = null
   selectedAgentIndex.value = null
@@ -633,7 +782,7 @@ const toggleAgentDropdown = () => {
 }
 
 const selectAgent = (agent, idx) => {
-  // 保存当前对话记录
+  // Simpan obrolan target sebelumnya
   saveChatHistory()
   
   selectedAgent.value = agent
@@ -642,9 +791,10 @@ const selectAgent = (agent, idx) => {
   showAgentDropdown.value = false
   agentSearchQuery.value = ''
   
-  // 恢复该 Agent 的对话记录
+  // Pulihkan riwayat obrolan Agen terpilih
   chatHistory.value = chatHistoryCache.value[`agent_${idx}`] || []
   addLog(t('log.selectChatTarget', { name: agent.username }))
+  nextTick(() => scrollToBottom())
 }
 
 const formatTime = (timestamp) => {
@@ -760,6 +910,9 @@ const sendMessage = async () => {
     content: message,
     timestamp: new Date().toISOString()
   })
+  
+  // Simpan segera pesan ke persistent storage
+  saveChatHistory()
   
   scrollToBottom()
   isSending.value = true
@@ -966,6 +1119,22 @@ const submitSurvey = async () => {
       }
       
       surveyResults.value = surveyResultsList
+
+      // Simpan hasil survei secara persisten
+      const surveyKey = getSurveyStorageKey()
+      if (surveyKey) {
+        try {
+          localStorage.setItem(surveyKey, JSON.stringify(surveyResultsList))
+        } catch (e) {}
+      }
+      if (props.simulationId) {
+        saveInteractionHistory({
+          simulation_id: props.simulationId,
+          chat_cache: chatHistoryCache.value,
+          survey_results: surveyResultsList
+        }).catch(() => {})
+      }
+
       addLog(t('log.receivedReplies', { count: surveyResults.value.length }))
     } else {
       throw new Error(res.error || t('step5.requestFailed'))
@@ -1048,6 +1217,7 @@ onMounted(() => {
   addLog(t('log.step5Init'))
   loadReportData()
   loadProfiles()
+  loadChatHistory()
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -1064,6 +1234,7 @@ watch(() => props.reportId, (newId) => {
 watch(() => props.simulationId, (newId) => {
   if (newId) {
     loadProfiles()
+    loadChatHistory()
   }
 }, { immediate: true })
 </script>
@@ -1612,6 +1783,21 @@ watch(() => props.simulationId, (newId) => {
   height: 24px;
   background: #E5E7EB;
   margin: 0 6px;
+}
+
+.clear-pill {
+  color: #9CA3AF;
+  background: transparent;
+  border: 1px dashed #D1D5DB;
+  font-size: 11.5px;
+  padding: 6px 12px;
+}
+
+.clear-pill:hover {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+  border-style: solid;
 }
 
 .agent-pill {

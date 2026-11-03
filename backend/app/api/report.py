@@ -4,6 +4,7 @@ Report API路由
 """
 
 import os
+import json
 import traceback
 import threading
 from datetime import datetime
@@ -1434,6 +1435,29 @@ def chat_with_report_agent():
         )
         
         result = agent.chat(message=message, chat_history=chat_history)
+
+        # Auto-save ke interaction_history.json secara persisten
+        try:
+            sim_dir = os.path.join(os.path.dirname(__file__), '../../uploads/simulations', simulation_id)
+            if os.path.exists(sim_dir):
+                history_file = os.path.join(sim_dir, 'interaction_history.json')
+                cur_data = {}
+                if os.path.exists(history_file):
+                    try:
+                        with open(history_file, 'r', encoding='utf-8') as hf:
+                            cur_data = json.load(hf)
+                    except Exception:
+                        cur_data = {}
+                chat_cache = cur_data.get('chat_cache', {})
+                ra_history = chat_cache.get('report_agent', [])
+                ra_history.append({'role': 'user', 'content': message, 'timestamp': datetime.now().isoformat()})
+                ra_history.append({'role': 'assistant', 'content': result.get('response', ''), 'timestamp': datetime.now().isoformat()})
+                chat_cache['report_agent'] = ra_history
+                cur_data['chat_cache'] = chat_cache
+                with open(history_file, 'w', encoding='utf-8') as hf:
+                    json.dump(cur_data, hf, ensure_ascii=False, indent=2)
+        except Exception as save_err:
+            logger.warning(f"Gagal auto-save chat history: {save_err}")
         
         return jsonify({
             "success": True,
@@ -1447,6 +1471,97 @@ def chat_with_report_agent():
             "error": str(e),
             "traceback": traceback.format_exc()
         }), 500
+
+
+@report_bp.route('/interaction/history', methods=['GET', 'POST', 'DELETE'])
+def handle_interaction_history():
+    """
+    Simpan, muat, dan kelola riwayat interaksi obrolan & survei secara persisten.
+    """
+    try:
+        if request.method == 'GET':
+            simulation_id = request.args.get('simulation_id')
+            if not simulation_id:
+                return jsonify({"success": False, "error": "simulation_id diperlukan"}), 400
+            
+            sim_dir = os.path.join(os.path.dirname(__file__), '../../uploads/simulations', simulation_id)
+            history_file = os.path.join(sim_dir, 'interaction_history.json')
+            
+            if os.path.exists(history_file):
+                try:
+                    with open(history_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    return jsonify({"success": True, "data": data})
+                except Exception as read_err:
+                    logger.warning(f"Gagal membaca interaction_history.json: {read_err}")
+            
+            return jsonify({
+                "success": True,
+                "data": {
+                    "chat_cache": {},
+                    "survey_results": []
+                }
+            })
+
+        elif request.method == 'POST':
+            payload = request.get_json() or {}
+            simulation_id = payload.get('simulation_id')
+            if not simulation_id:
+                return jsonify({"success": False, "error": "simulation_id diperlukan"}), 400
+
+            sim_dir = os.path.join(os.path.dirname(__file__), '../../uploads/simulations', simulation_id)
+            if not os.path.exists(sim_dir):
+                os.makedirs(sim_dir, exist_ok=True)
+
+            history_file = os.path.join(sim_dir, 'interaction_history.json')
+            cur_data = {}
+            if os.path.exists(history_file):
+                try:
+                    with open(history_file, 'r', encoding='utf-8') as f:
+                        cur_data = json.load(f)
+                except Exception:
+                    cur_data = {}
+
+            if 'chat_cache' in payload:
+                cur_data['chat_cache'] = payload['chat_cache']
+            if 'survey_results' in payload:
+                cur_data['survey_results'] = payload['survey_results']
+            if 'active_target' in payload:
+                cur_data['active_target'] = payload['active_target']
+
+            with open(history_file, 'w', encoding='utf-8') as f:
+                json.dump(cur_data, f, ensure_ascii=False, indent=2)
+
+            return jsonify({"success": True})
+
+        elif request.method == 'DELETE':
+            simulation_id = request.args.get('simulation_id')
+            target = request.args.get('target')  # misal 'report_agent' atau 'all'
+            if not simulation_id:
+                return jsonify({"success": False, "error": "simulation_id diperlukan"}), 400
+
+            sim_dir = os.path.join(os.path.dirname(__file__), '../../uploads/simulations', simulation_id)
+            history_file = os.path.join(sim_dir, 'interaction_history.json')
+            if os.path.exists(history_file):
+                try:
+                    with open(history_file, 'r', encoding='utf-8') as f:
+                        cur_data = json.load(f)
+                    
+                    if target == 'all' or not target:
+                        cur_data['chat_cache'] = {}
+                    elif target in cur_data.get('chat_cache', {}):
+                        del cur_data['chat_cache'][target]
+                    
+                    with open(history_file, 'w', encoding='utf-8') as f:
+                        json.dump(cur_data, f, ensure_ascii=False, indent=2)
+                except Exception as del_err:
+                    logger.warning(f"Gagal menghapus riwayat chat: {del_err}")
+
+            return jsonify({"success": True})
+
+    except Exception as e:
+        logger.error(f"Gagal memproses interaction history: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # ============== 报告进度与分章节接口 ==============
