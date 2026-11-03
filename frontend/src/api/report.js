@@ -51,6 +51,14 @@ export const getReport = (reportId) => {
 }
 
 /**
+ * Dapatkan data Ringkasan Eksekutif (Eksum) dinamis
+ * @param {string} reportId
+ */
+export const getExecutiveSummary = (reportId) => {
+  return service.get(`/api/report/${reportId}/eksum`)
+}
+
+/**
  * 与 Report Agent 对话
  * @param {Object} data - { simulation_id, message, chat_history? }
  */

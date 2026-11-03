@@ -48,11 +48,11 @@ class SearchResult:
         }
     
     def to_text(self) -> str:
-        """转换为文本格式，供LLM理解"""
-        text_parts = [f"搜索查询: {self.query}", f"找到 {self.total_count} 条相关信息"]
+        """Konversi ke format teks untuk LLM dan display UI"""
+        text_parts = [f"Kueri Pencarian: {self.query}", f"Ditemukan {self.total_count} informasi relevan"]
         
         if self.facts:
-            text_parts.append("\n### 相关事实:")
+            text_parts.append("\n### Fakta Terkait:")
             for i, fact in enumerate(self.facts, 1):
                 text_parts.append(f"{i}. {fact}")
         
@@ -174,42 +174,42 @@ class InsightForgeResult:
         }
     
     def to_text(self) -> str:
-        """转换为详细的文本格式，供LLM理解"""
+        """Konversi ke format teks untuk LLM dan display UI"""
         text_parts = [
-            f"## 未来预测深度分析",
-            f"分析问题: {self.query}",
-            f"预测场景: {self.simulation_requirement}",
-            f"\n### 预测数据统计",
-            f"- 相关预测事实: {self.total_facts}条",
-            f"- 涉及实体: {self.total_entities}个",
-            f"- 关系链: {self.total_relationships}条"
+            f"## Analisis Mendalam Prediksi Simulasi (InsightForge)",
+            f"Kueri Analisis: {self.query}",
+            f"Skenario Prediksi: {self.simulation_requirement}",
+            f"\n### Statistik Data Prediksi",
+            f"- Fakta Terkait: {self.total_facts} butir",
+            f"- Entitas Terkait: {self.total_entities} entitas",
+            f"- Rantai Relasi: {self.total_relationships} rantai"
         ]
         
-        # 子问题
+        # Sub-pertanyaan
         if self.sub_queries:
-            text_parts.append(f"\n### 分析的子问题")
+            text_parts.append(f"\n### Sub-pertanyaan Analisis")
             for i, sq in enumerate(self.sub_queries, 1):
                 text_parts.append(f"{i}. {sq}")
         
-        # 语义搜索结果
+        # Hasil pencarian semantik
         if self.semantic_facts:
-            text_parts.append(f"\n### 【关键事实】(请在报告中引用这些原文)")
+            text_parts.append(f"\n### 【Fakta Kunci】(Kutipan hasil simulasi)")
             for i, fact in enumerate(self.semantic_facts, 1):
                 text_parts.append(f"{i}. \"{fact}\"")
         
-        # 实体洞察
+        # Wawasan entitas
         if self.entity_insights:
-            text_parts.append(f"\n### 【核心实体】")
+            text_parts.append(f"\n### 【Entitas Utama】")
             for entity in self.entity_insights:
-                text_parts.append(f"- **{entity.get('name', '未知')}** ({entity.get('type', '实体')})")
+                text_parts.append(f"- **{entity.get('name', 'Entitas')}** ({entity.get('type', 'Entitas')})")
                 if entity.get('summary'):
-                    text_parts.append(f"  摘要: \"{entity.get('summary')}\"")
+                    text_parts.append(f"  Ringkasan: \"{entity.get('summary')}\"")
                 if entity.get('related_facts'):
-                    text_parts.append(f"  相关事实: {len(entity.get('related_facts', []))}条")
+                    text_parts.append(f"  Fakta Terkait: {len(entity.get('related_facts', []))} butir")
         
-        # 关系链
+        # Rantai relasi
         if self.relationship_chains:
-            text_parts.append(f"\n### 【关系链】")
+            text_parts.append(f"\n### 【Rantai Relasi】")
             for chain in self.relationship_chains:
                 text_parts.append(f"- {chain}")
         
@@ -253,34 +253,34 @@ class PanoramaResult:
         }
     
     def to_text(self) -> str:
-        """转换为文本格式（完整版本，不截断）"""
+        """Konversi ke format teks untuk LLM dan display UI"""
         text_parts = [
-            f"## 广度搜索结果（未来全景视图）",
-            f"查询: {self.query}",
-            f"\n### 统计信息",
-            f"- 总节点数: {self.total_nodes}",
-            f"- 总边数: {self.total_edges}",
-            f"- 当前有效事实: {self.active_count}条",
-            f"- 历史/过期事实: {self.historical_count}条"
+            f"## Hasil Pencarian Panorama Luas (PanoramaSearch)",
+            f"Kueri: {self.query}",
+            f"\n### Informasi Statistik",
+            f"- Total Simpul: {self.total_nodes}",
+            f"- Total Relasi: {self.total_edges}",
+            f"- Fakta Aktif Saat Ini: {self.active_count} butir",
+            f"- Fakta Riwayat/Historis: {self.historical_count} butir"
         ]
         
-        # 当前有效的事实（完整输出，不截断）
+        # Fakta aktif
         if self.active_facts:
-            text_parts.append(f"\n### 【当前有效事实】(模拟结果原文)")
+            text_parts.append(f"\n### 【Fakta Aktif Saat Ini】(Hasil simulasi terkini)")
             for i, fact in enumerate(self.active_facts, 1):
                 text_parts.append(f"{i}. \"{fact}\"")
         
-        # 历史/过期事实（完整输出，不截断）
+        # Fakta riwayat/historis
         if self.historical_facts:
-            text_parts.append(f"\n### 【历史/过期事实】(演变过程记录)")
+            text_parts.append(f"\n### 【Fakta Riwayat/Historis】(Catatan proses evolusi)")
             for i, fact in enumerate(self.historical_facts, 1):
                 text_parts.append(f"{i}. \"{fact}\"")
         
-        # 关键实体（完整输出，不截断）
+        # Entitas terkait
         if self.all_nodes:
-            text_parts.append(f"\n### 【涉及实体】")
+            text_parts.append(f"\n### 【Entitas Terkait】")
             for node in self.all_nodes:
-                entity_type = next((l for l in node.labels if l not in ["Entity", "Node"]), "实体")
+                entity_type = next((l for l in node.labels if l not in ["Entity", "Node"]), "Entitas")
                 text_parts.append(f"- **{node.name}** ({entity_type})")
         
         return "\n".join(text_parts)
@@ -308,21 +308,20 @@ class AgentInterview:
     
     def to_text(self) -> str:
         text = f"**{self.agent_name}** ({self.agent_role})\n"
-        # 显示完整的agent_bio，不截断
-        text += f"_简介: {self.agent_bio}_\n\n"
-        text += f"**Q:** {self.question}\n\n"
-        text += f"**A:** {self.response}\n"
+        # Tampilkan bio agent lengkap
+        text += f"_Profil: {self.agent_bio}_\n\n"
+        text += f"**T (Tanya):** {self.question}\n\n"
+        text += f"**J (Jawab):** {self.response}\n"
         if self.key_quotes:
-            text += "\n**关键引言:**\n"
+            text += "\n**Kutipan Kunci:**\n"
             for quote in self.key_quotes:
-                # 清理各种引号
+                # Bersihkan kutipan
                 clean_quote = quote.replace('\u201c', '').replace('\u201d', '').replace('"', '')
                 clean_quote = clean_quote.replace('\u300c', '').replace('\u300d', '')
                 clean_quote = clean_quote.strip()
-                # 去掉开头的标点
                 while clean_quote and clean_quote[0] in '，,；;：:、。！？\n\r\t ':
                     clean_quote = clean_quote[1:]
-                # 过滤包含问题编号的垃圾内容（问题1-9）
+                # Filter jika ada penomoran pertanyaan Tionghoa
                 skip = False
                 for d in '123456789':
                     if f'\u95ee\u9898{d}' in clean_quote:
@@ -330,9 +329,8 @@ class AgentInterview:
                         break
                 if skip:
                     continue
-                # 截断过长内容（按句号截断，而非硬截断）
                 if len(clean_quote) > 150:
-                    dot_pos = clean_quote.find('\u3002', 80)
+                    dot_pos = clean_quote.find('.', 80)
                     if dot_pos > 0:
                         clean_quote = clean_quote[:dot_pos + 1]
                     else:
@@ -378,27 +376,27 @@ class InterviewResult:
         }
     
     def to_text(self) -> str:
-        """转换为详细的文本格式，供LLM理解和报告引用"""
+        """Konversi ke format teks untuk LLM dan display UI"""
         text_parts = [
-            "## 深度采访报告",
-            f"**采访主题:** {self.interview_topic}",
-            f"**采访人数:** {self.interviewed_count} / {self.total_agents} 位模拟Agent",
-            "\n### 采访对象选择理由",
-            self.selection_reasoning or "（自动选择）",
+            "## Laporan Wawancara Mendalam (InterviewAgents)",
+            f"**Topik Wawancara:** {self.interview_topic}",
+            f"**Jumlah Narasumber:** {self.interviewed_count} / {self.total_agents} Agen Simulasi",
+            "\n### Alasan Pemilihan Narasumber",
+            self.selection_reasoning or "（Pemilihan otomatis berdasarkan relevansi topik）",
             "\n---",
-            "\n### 采访实录",
+            "\n### Transkrip Wawancara",
         ]
 
         if self.interviews:
             for i, interview in enumerate(self.interviews, 1):
-                text_parts.append(f"\n#### 采访 #{i}: {interview.agent_name}")
+                text_parts.append(f"\n#### Wawancara #{i}: {interview.agent_name}")
                 text_parts.append(interview.to_text())
                 text_parts.append("\n---")
         else:
-            text_parts.append("（无采访记录）\n\n---")
+            text_parts.append("（Tidak ada catatan wawancara）\n\n---")
 
-        text_parts.append("\n### 采访摘要与核心观点")
-        text_parts.append(self.summary or "（无摘要）")
+        text_parts.append("\n### Ringkasan Wawancara & Pandangan Kunci")
+        text_parts.append(self.summary or "（Tidak ada ringkasan）")
 
         return "\n".join(text_parts)
 
@@ -441,6 +439,28 @@ class ZepToolsService:
         if self._llm_client is None:
             self._llm_client = LLMClient()
         return self._llm_client
+
+    def _translate_if_chinese(self, text: str) -> str:
+        """Deteksi dan terjemahkan teks berbahasa Tionghoa ke Bahasa Indonesia secara otomatis"""
+        if not text or not any('\u4e00' <= c <= '\u9fff' for c in text):
+            return text
+        try:
+            translated = self.llm.chat(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Anda adalah penerjemah intelijen profesional. Terjemahkan kalimat/teks berikut ke dalam Bahasa Indonesia yang formal, akurat, dan mengalir alami. Kembalikan HANYA kalimat hasil terjemahan tanpa tanda kutip pembuka/penutup atau penjelasan tambahan."
+                    },
+                    {"role": "user", "content": text}
+                ],
+                temperature=0.1,
+                max_tokens=300
+            )
+            res = translated.strip().strip('"').strip("'")
+            return res if res else text
+        except Exception as e:
+            logger.warning(f"Gagal menerjemahkan teks Tionghoa: {e}")
+            return text
     
     def _call_with_retry(self, func, operation_name: str, max_retries: int = None):
         """Retry one safe read using typed Zep/HTTPX error classification."""
@@ -510,7 +530,7 @@ class ZepToolsService:
             if hasattr(search_results, 'edges') and search_results.edges:
                 for edge in search_results.edges:
                     if hasattr(edge, 'fact') and edge.fact:
-                        facts.append(edge.fact)
+                        facts.append(self._translate_if_chinese(edge.fact))
                     edges.append({
                         "uuid": getattr(edge, 'uuid_', None) or getattr(edge, 'uuid', ''),
                         "name": getattr(edge, 'name', ''),
@@ -530,7 +550,7 @@ class ZepToolsService:
                     })
                     # 节点摘要也算作事实
                     if hasattr(node, 'summary') and node.summary:
-                        facts.append(f"[{node.name}]: {node.summary}")
+                        facts.append(f"[{node.name}]: {self._translate_if_chinese(node.summary)}")
             
             logger.info(t("console.searchComplete", count=len(facts)))
             
@@ -1108,23 +1128,24 @@ class ZepToolsService:
         
         将复杂问题分解为多个可以独立检索的子问题
         """
-        system_prompt = """你是一个专业的问题分析专家。你的任务是将一个复杂问题分解为多个可以在模拟世界中独立观察的子问题。
+        system_prompt = """Anda adalah ahli analisis investigasi profesional. Tugas Anda adalah menguraikan pertanyaan kompleks menjadi beberapa sub-pertanyaan spesifik yang dapat diobservasi secara mandiri dalam dunia simulasi.
 
-要求：
-1. 每个子问题应该足够具体，可以在模拟世界中找到相关的Agent行为或事件
-2. 子问题应该覆盖原问题的不同维度（如：谁、什么、为什么、怎么样、何时、何地）
-3. 子问题应该与模拟场景相关
-4. 返回JSON格式：{"sub_queries": ["子问题1", "子问题2", ...]}"""
+Persyaratan:
+1. Setiap sub-pertanyaan harus spesifik agar dapat ditemukan perilaku Agent atau peristiwa terkait dalam dunia simulasi
+2. Sub-pertanyaan harus mencakup dimensi yang berbeda (siapa, apa, mengapa, bagaimana, kapan, di mana)
+3. Sub-pertanyaan harus relevan dengan skenario simulasi
+4. Seluruh keluaran WAJIB menggunakan Bahasa Indonesia yang formal dan tepat
+5. Kembalikan format JSON: {"sub_queries": ["sub-pertanyaan 1", "sub-pertanyaan 2", ...]}"""
 
-        user_prompt = f"""模拟需求背景：
+        user_prompt = f"""Latar Belakang Kebutuhan Simulasi:
 {simulation_requirement}
 
-{f"报告上下文：{report_context[:500]}" if report_context else ""}
+{f"Konteks Laporan: {report_context[:500]}" if report_context else ""}
 
-请将以下问题分解为{max_queries}个子问题：
+Uraikan pertanyaan berikut menjadi {max_queries} sub-pertanyaan spesifik dalam Bahasa Indonesia:
 {query}
 
-返回JSON格式的子问题列表。"""
+Kembalikan daftar sub-pertanyaan dalam format JSON."""
 
         try:
             response = self.llm.chat_json(
@@ -1136,17 +1157,17 @@ class ZepToolsService:
             )
             
             sub_queries = response.get("sub_queries", [])
-            # 确保是字符串列表
+            # Pastikan daftar string
             return [str(sq) for sq in sub_queries[:max_queries]]
             
         except Exception as e:
             logger.warning(t("console.generateSubQueriesFailed", error=str(e)))
-            # 降级：返回基于原问题的变体
+            # Fallback dalam Bahasa Indonesia
             return [
                 query,
-                f"{query} 的主要参与者",
-                f"{query} 的原因和影响",
-                f"{query} 的发展过程"
+                f"Aktor utama terkait {query}",
+                f"Penyebab dan dampak {query}",
+                f"Kronologi perkembangan {query}"
             ][:max_queries]
     
     def panorama_search(
@@ -1207,13 +1228,14 @@ class ZepToolsService:
             
             if is_historical:
                 # 历史/过期事实，添加时间标记
-                valid_at = edge.valid_at or "未知"
-                invalid_at = edge.invalid_at or edge.expired_at or "未知"
-                fact_with_time = f"[{valid_at} - {invalid_at}] {edge.fact}"
+                valid_at = edge.valid_at or "tidak diketahui"
+                invalid_at = edge.invalid_at or edge.expired_at or "tidak diketahui"
+                clean_fact = self._translate_if_chinese(edge.fact)
+                fact_with_time = f"[{valid_at} - {invalid_at}] {clean_fact}"
                 historical_facts.append(fact_with_time)
             else:
                 # 当前有效事实
-                active_facts.append(edge.fact)
+                active_facts.append(self._translate_if_chinese(edge.fact))
         
         # 基于查询进行相关性排序
         query_lower = query.lower()
@@ -1355,17 +1377,17 @@ class ZepToolsService:
         # 将问题合并为一个采访prompt
         combined_prompt = "\n".join([f"{i+1}. {q}" for i, q in enumerate(result.interview_questions)])
         
-        # 添加优化前缀，约束Agent回复格式
+        # Tambahkan prefix optimasi, batasi format jawaban Agent
         INTERVIEW_PROMPT_PREFIX = (
-            "你正在接受一次采访。请结合你的人设、所有的过往记忆与行动，"
-            "以纯文本方式直接回答以下问题。\n"
-            "回复要求：\n"
-            "1. 直接用自然语言回答，不要调用任何工具\n"
-            "2. 不要返回JSON格式或工具调用格式\n"
-            "3. 不要使用Markdown标题（如#、##、###）\n"
-            "4. 按问题编号逐一回答，每个回答以「问题X：」开头（X为问题编号）\n"
-            "5. 每个问题的回答之间用空行分隔\n"
-            "6. 回答要有实质内容，每个问题至少回答2-3句话\n\n"
+            "Anda sedang diwawancarai. Berdasarkan persona Anda, seluruh ingatan dan tindakan Anda sebelumnya dalam simulasi, "
+            "jawablah pertanyaan-pertanyaan berikut secara langsung dalam teks biasa menggunakan Bahasa Indonesia.\n"
+            "Ketentuan jawaban:\n"
+            "1. Jawab langsung dalam bahasa alami (Bahasa Indonesia), jangan memanggil alat apa pun\n"
+            "2. Jangan kembalikan format JSON atau pemanggilan alat\n"
+            "3. Jangan gunakan judul Markdown (seperti #, ##, ###)\n"
+            "4. Jawab satu per satu sesuai nomor pertanyaan, setiap jawaban diawali dengan 'Pertanyaan X:' (X adalah nomor pertanyaan)\n"
+            "5. Pisahkan jawaban setiap pertanyaan dengan baris kosong\n"
+            "6. Berikan jawaban yang substantif dan berkarakter, setiap pertanyaan dijawab setidaknya 2-3 kalimat\n\n"
         )
         optimized_prompt = f"{INTERVIEW_PROMPT_PREFIX}{combined_prompt}"
         
@@ -1421,10 +1443,14 @@ class ZepToolsService:
                 twitter_response = self._clean_tool_call_response(twitter_response)
                 reddit_response = self._clean_tool_call_response(reddit_response)
 
-                # 始终输出双平台标记
-                twitter_text = twitter_response if twitter_response else "（该平台未获得回复）"
-                reddit_text = reddit_response if reddit_response else "（该平台未获得回复）"
-                response_text = f"【Twitter平台回答】\n{twitter_text}\n\n【Reddit平台回答】\n{reddit_text}"
+                # Pastikan jawaban diterjemahkan ke Bahasa Indonesia jika mengandung bahasa Tionghoa
+                twitter_response = self._translate_if_chinese(twitter_response)
+                reddit_response = self._translate_if_chinese(reddit_response)
+
+                # Output penanda platform dua arah
+                twitter_text = twitter_response if twitter_response else "（Tidak ada jawaban di platform Twitter）"
+                reddit_text = reddit_response if reddit_response else "（Tidak ada jawaban di platform Reddit）"
+                response_text = f"【Jawaban Platform Twitter】\n{twitter_text}\n\n【Jawaban Platform Reddit】\n{reddit_text}"
 
                 # 提取关键引言（从两个平台的回答中）
                 import re
@@ -1434,11 +1460,11 @@ class ZepToolsService:
                 clean_text = re.sub(r'#{1,6}\s+', '', combined_responses)
                 clean_text = re.sub(r'\{[^}]*tool_name[^}]*\}', '', clean_text)
                 clean_text = re.sub(r'[*_`|>~\-]{2,}', '', clean_text)
-                clean_text = re.sub(r'问题\d+[：:]\s*', '', clean_text)
+                clean_text = re.sub(r'(?:问题|Pertanyaan)\s*\d+[：:]\s*', '', clean_text)
                 clean_text = re.sub(r'【[^】]+】', '', clean_text)
 
-                # 策略1（主）: 提取完整的有实质内容的句子
-                sentences = re.split(r'[。！？]', clean_text)
+                # Strategi: ekstraksi kalimat bermakna
+                sentences = re.split(r'[.!?。！？]', clean_text)
                 meaningful = [
                     s.strip() for s in sentences
                     if 20 <= len(s.strip()) <= 150
@@ -1584,30 +1610,31 @@ class ZepToolsService:
             }
             agent_summaries.append(summary)
         
-        system_prompt = """你是一个专业的采访策划专家。你的任务是根据采访需求，从模拟Agent列表中选择最适合采访的对象。
+        system_prompt = """Anda adalah perencana wawancara profesional. Tugas Anda adalah memilih Agent simulasi yang paling relevan untuk diwawancarai berdasarkan kebutuhan investigasi.
 
-选择标准：
-1. Agent的身份/职业与采访主题相关
-2. Agent可能持有独特或有价值的观点
-3. 选择多样化的视角（如：支持方、反对方、中立方、专业人士等）
-4. 优先选择与事件直接相关的角色
+Kriteria Pemilihan:
+1. Identitas/profesi Agent relevan dengan topik wawancara
+2. Agent memiliki sudut pandang berbobot atau unik
+3. Pilih keberagaman perspektif (pendukung, penentang, netral, otoritas/regulator)
+4. Utamakan figur yang terlibat langsung dalam dinamika isu
+5. Gunakan Bahasa Indonesia sepenuhnya
 
-返回JSON格式：
+Kembalikan format JSON:
 {
-    "selected_indices": [选中Agent的索引列表],
-    "reasoning": "选择理由说明"
+    "selected_indices": [indeks_agent_terpilih],
+    "reasoning": "Penjelasan alasan pemilihan dalam Bahasa Indonesia"
 }"""
 
-        user_prompt = f"""采访需求：
+        user_prompt = f"""Kebutuhan Wawancara:
 {interview_requirement}
 
-模拟背景：
-{simulation_requirement if simulation_requirement else "未提供"}
+Latar Belakang Simulasi:
+{simulation_requirement if simulation_requirement else "Tidak disediakan"}
 
-可选择的Agent列表（共{len(agent_summaries)}个）：
+Daftar Agent yang tersedia (Total {len(agent_summaries)}):
 {json.dumps(agent_summaries, ensure_ascii=False, indent=2)}
 
-请选择最多{max_agents}个最适合采访的Agent，并说明选择理由。"""
+Pilih maksimal {max_agents} Agent yang paling relevan dan jelaskan alasannya dalam Bahasa Indonesia."""
 
         try:
             response = self.llm.chat_json(
@@ -1619,7 +1646,7 @@ class ZepToolsService:
             )
             
             selected_indices = response.get("selected_indices", [])[:max_agents]
-            reasoning = response.get("reasoning", "基于相关性自动选择")
+            reasoning = response.get("reasoning", "Dipilih otomatis berdasarkan relevansi topik")
             
             # 获取选中的Agent完整信息
             selected_agents = []
@@ -1633,10 +1660,10 @@ class ZepToolsService:
             
         except Exception as e:
             logger.warning(t("console.llmSelectAgentFailed", error=e))
-            # 降级：选择前N个
+            # Fallback
             selected = profiles[:max_agents]
             indices = list(range(min(max_agents, len(profiles))))
-            return selected, indices, "使用默认选择策略"
+            return selected, indices, "Menggunakan strategi pemilihan standar"
     
     def _generate_interview_questions(
         self,
@@ -1644,29 +1671,30 @@ class ZepToolsService:
         simulation_requirement: str,
         selected_agents: List[Dict[str, Any]]
     ) -> List[str]:
-        """使用LLM生成采访问题"""
+        """Gunakan LLM untuk membuat pertanyaan wawancara dalam Bahasa Indonesia"""
         
-        agent_roles = [a.get("profession", "未知") for a in selected_agents]
+        agent_roles = [a.get("profession", "Agen") for a in selected_agents]
         
-        system_prompt = """你是一个专业的记者/采访者。根据采访需求，生成3-5个深度采访问题。
+        system_prompt = """Anda adalah jurnalis/pewawancara investigasi profesional. Berdasarkan topik wawancara, susun 3-5 pertanyaan wawancara mendalam dalam Bahasa Indonesia.
 
-问题要求：
-1. 开放性问题，鼓励详细回答
-2. 针对不同角色可能有不同答案
-3. 涵盖事实、观点、感受等多个维度
-4. 语言自然，像真实采访一样
-5. 每个问题控制在50字以内，简洁明了
-6. 直接提问，不要包含背景说明或前缀
+Persyaratan Pertanyaan:
+1. Pertanyaan terbuka yang mendorong elaborasi substantif
+2. Relevan dengan peran dan perspektif narasumber
+3. Menyelidiki fakta, sikap, dampak, dan respon kebijakan
+4. Gaya bahasa formal, lugas, dan alami
+5. Panjang tiap pertanyaan di bawah 50 kata
+6. Langsung ajukan pertanyaan tanpa basa-basi pembuka
+7. Gunakan Bahasa Indonesia sepenuhnya
 
-返回JSON格式：{"questions": ["问题1", "问题2", ...]}"""
+Kembalikan format JSON: {"questions": ["pertanyaan 1", "pertanyaan 2", ...]}"""
 
-        user_prompt = f"""采访需求：{interview_requirement}
+        user_prompt = f"""Topik Wawancara: {interview_requirement}
 
-模拟背景：{simulation_requirement if simulation_requirement else "未提供"}
+Latar Belakang Simulasi: {simulation_requirement if simulation_requirement else "Tidak disediakan"}
 
-采访对象角色：{', '.join(agent_roles)}
+Peran Calon Narasumber: {', '.join(agent_roles)}
 
-请生成3-5个采访问题。"""
+Buatlah 3-5 pertanyaan wawancara dalam Bahasa Indonesia."""
 
         try:
             response = self.llm.chat_json(
@@ -1677,14 +1705,14 @@ class ZepToolsService:
                 temperature=0.5
             )
             
-            return response.get("questions", [f"关于{interview_requirement}，您有什么看法？"])
+            return response.get("questions", [f"Bagaimana pandangan Anda mengenai {interview_requirement}?"])
             
         except Exception as e:
             logger.warning(t("console.generateInterviewQuestionsFailed", error=e))
             return [
-                f"关于{interview_requirement}，您的观点是什么？",
-                "这件事对您或您所代表的群体有什么影响？",
-                "您认为应该如何解决或改进这个问题？"
+                f"Bagaimana sikap dan pandangan Anda terkait {interview_requirement}?",
+                "Bagaimana isu ini berdampak secara langsung terhadap peran atau kelompok Anda?",
+                "Apa langkah konkret yang menurut Anda perlu segera diambil untuk menyelesaikan masalah ini?"
             ]
     
     def _generate_interview_summary(
@@ -1692,39 +1720,38 @@ class ZepToolsService:
         interviews: List[AgentInterview],
         interview_requirement: str
     ) -> str:
-        """生成采访摘要"""
+        """Buat ringkasan wawancara dalam Bahasa Indonesia"""
         
         if not interviews:
-            return "未完成任何采访"
+            return "Tidak ada wawancara yang terselesaikan"
         
-        # 收集所有采访内容
+        # Kumpulkan seluruh hasil wawancara
         interview_texts = []
         for interview in interviews:
-            interview_texts.append(f"【{interview.agent_name}（{interview.agent_role}）】\n{interview.response[:500]}")
+            interview_texts.append(f"【{interview.agent_name} ({interview.agent_role})】\n{interview.response[:500]}")
         
-        quote_instruction = "引用受访者原话时使用中文引号「」" if get_locale() == 'zh' else 'Use quotation marks "" when quoting interviewees'
-        system_prompt = f"""你是一个专业的新闻编辑。请根据多位受访者的回答，生成一份采访摘要。
+        system_prompt = """Anda adalah redaktur investigasi senior. Berdasarkan jawaban dari narasumber, susunlah ringkasan wawancara dalam Bahasa Indonesia.
 
-摘要要求：
-1. 提炼各方主要观点
-2. 指出观点的共识和分歧
-3. 突出有价值的引言
-4. 客观中立，不偏袒任何一方
-5. 控制在1000字内
+Persyaratan Ringkasan:
+1. Rangkum pokok pandangan dari tiap kluster aktor
+2. Petakan titik temu (konsensus) dan benturan sikap (polarisasi)
+3. Soroti kutipan pernyataan yang paling penting
+4. Objektif dan profesional
+5. Maksimal 1000 kata
 
-格式约束（必须遵守）：
-- 使用纯文本段落，用空行分隔不同部分
-- 不要使用Markdown标题（如#、##、###）
-- 不要使用分割线（如---、***）
-- {quote_instruction}
-- 可以使用**加粗**标记关键词，但不要使用其他Markdown语法"""
+Batasan Format (Wajib):
+- Gunakan paragraf teks biasa, pisahkan antarpokok bahasan dengan baris kosong
+- JANGAN gunakan heading Markdown (#, ##, ###)
+- JANGAN gunakan garis pemisah (---, ***)
+- Gunakan tanda petik ganda "" untuk mengutip pernyataan narasumber
+- Boleh gunakan **tebal** untuk penekanan frasa kunci"""
 
-        user_prompt = f"""采访主题：{interview_requirement}
+        user_prompt = f"""Topik Wawancara: {interview_requirement}
 
-采访内容：
+Transkrip Wawancara:
 {"".join(interview_texts)}
 
-请生成采访摘要。"""
+Susun ringkasan wawancara dalam Bahasa Indonesia."""
 
         try:
             summary = self.llm.chat(
@@ -1739,5 +1766,6 @@ class ZepToolsService:
             
         except Exception as e:
             logger.warning(t("console.generateInterviewSummaryFailed", error=e))
+            return f"Telah diwawancarai {len(interviews)} agen simulasi: " + ", ".join([i.agent_name for i in interviews])
             # 降级：简单拼接
             return f"共采访了{len(interviews)}位受访者，包括：" + "、".join([i.agent_name for i in interviews])

@@ -482,6 +482,31 @@ def get_report(report_id: str):
         }), 500
 
 
+@report_bp.route('/<report_id>/eksum', methods=['GET'])
+def get_report_eksum(report_id: str):
+    """
+    Dapatkan ringkasan eksekutif (Executive Summary) dinamis berbasis data simulasi aktual.
+    """
+    try:
+        from ..services.eksum_service import generate_executive_summary
+        data = generate_executive_summary(report_id)
+        return jsonify({
+            "success": True,
+            "data": data
+        })
+    except FileNotFoundError:
+        return jsonify({
+            "success": False,
+            "error": f"Laporan {report_id} tidak ditemukan"
+        }), 404
+    except Exception as e:
+        logger.error(f"Gagal menghasilkan ringkasan eksekutif {report_id}: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 @report_bp.route('/by-simulation/<simulation_id>', methods=['GET'])
 def get_report_by_simulation(simulation_id: str):
     """

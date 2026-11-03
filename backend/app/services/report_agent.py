@@ -550,317 +550,216 @@ TOOL_DESC_INTERVIEW_AGENTS = """\
 # ── 大纲规划 prompt ──
 
 PLAN_SYSTEM_PROMPT = """\
-你是一个「未来预测报告」的撰写专家，拥有对模拟世界的「上帝视角」——你可以洞察模拟中每一位Agent的行为、言论和互动。
+Anda adalah pakar penyusunan «Laporan Prediksi Intelijen Strategis», yang memiliki sudut pandang mahatahu («God's View») terhadap dunia simulasi — Anda dapat menelaah setiap perilaku, pernyataan, dan interaksi seluruh Agen dalam simulasi.
 
-【核心理念】
-我们构建了一个模拟世界，并向其中注入了特定的「模拟需求」作为变量。模拟世界的演化结果，就是对未来可能发生情况的预测。你正在观察的不是"实验数据"，而是"未来的预演"。
+【Konsep Inti】
+Kita telah membangun dunia simulasi dan memasukkan «Kebutuhan Simulasi» spesifik sebagai variabel pemicu. Dinamika dan evolusi dunia simulasi ini merupakan proyeksi prediksi atas situasi yang mungkin terjadi di masa depan. Yang Anda observasi bukanlah sekadar "data uji coba", melainkan "gladi resik masa depan".
 
-【你的任务】
-撰写一份「未来预测报告」，回答：
-1. 在我们设定的条件下，未来发生了什么？
-2. 各类Agent（人群）是如何反应和行动？
-3. 这个模拟揭示了哪些值得关注的未来趋势和风险？
+【Tugas Anda】
+Susunlah «Laporan Prediksi Intelijen Strategis» dalam Bahasa Indonesia formal, yang menjawab:
+1. Di bawah kondisi yang ditetapkan, apa yang terjadi dalam simulasi?
+2. Bagaimana respons dan tindakan masing-masing kluster Agen (kelompok aktor)?
+3. Tren masa depan dan titik risiko krusial apa yang terungkap oleh simulasi ini?
 
-【报告定位】
-- ✅ 这是一份基于模拟的未来预测报告，揭示"如果这样，未来会怎样"
-- ✅ 聚焦于预测结果：事件走向、群体反应、涌现现象、潜在风险
-- ✅ 模拟世界中的Agent言行就是对未来人群行为的预测
-- ❌ 不是对现实世界现状的分析
-- ❌ 不是泛泛而谈的舆情综述
+【Ketentuan Bahasa & Format】
+- WAJIB menggunakan Bahasa Indonesia yang profesional, analitis, dan presisi.
+- Fokus pada hasil proyeksi: arah pergerakan isu, reaksi kelompok aktor, fenomena kemunculan (emergence), dan risiko eskalasi.
+- Jumlah bab/bagian: minimal 2 bab, maksimal 5 bab.
+- Tidak memerlukan sub-bab bersarang; tiap bab langsung mengulas analisis komprehensif.
 
-【章节数量限制】
-- 最少2个章节，最多5个章节
-- 不需要子章节，每个章节直接撰写完整内容
-- 内容要精炼，聚焦于核心预测发现
-- 章节结构由你根据预测结果自主设计
-
-请输出JSON格式的报告大纲，格式如下：
+Keluarkan outline laporan dalam format JSON berikut:
 {
-    "title": "报告标题",
-    "summary": "报告摘要（一句话概括核心预测发现）",
+    "title": "Judul Laporan Strategis (Bahasa Indonesia)",
+    "summary": "Ringkasan Laporan (1-2 kalimat inti temuan proyeksi dalam Bahasa Indonesia)",
     "sections": [
         {
-            "title": "章节标题",
-            "description": "章节内容描述"
+            "title": "Judul Bab (Bahasa Indonesia)",
+            "description": "Deskripsi cakupan analisis bab"
         }
     ]
 }
 
-注意：sections数组最少2个，最多5个元素！"""
+Catatan: Array 'sections' berisi antara 2 hingga 5 elemen!"""
 
 PLAN_USER_PROMPT_TEMPLATE = """\
-【预测场景设定】
-我们向模拟世界注入的变量（模拟需求）：{simulation_requirement}
+【Skenario Prediksi Simulasi】
+Variabel / Kebutuhan Simulasi yang dimasukkan: {simulation_requirement}
 
-【模拟世界规模】
-- 参与模拟的实体数量: {total_nodes}
-- 实体间产生的关系数量: {total_edges}
-- 实体类型分布: {entity_types}
-- 活跃Agent数量: {total_entities}
+【Skala Dunia Simulasi】
+- Jumlah entitas yang terlibat: {total_nodes}
+- Jumlah relasi antar-entitas: {total_edges}
+- Distribusi tipe entitas: {entity_types}
+- Jumlah Agen aktif: {total_entities}
 
-【模拟预测到的部分未来事实样本】
+【Sampel Fakta Prediksi yang Teramati】
 {related_facts_json}
 
-请以「上帝视角」审视这个未来预演：
-1. 在我们设定的条件下，未来呈现出了什么样的状态？
-2. 各类人群（Agent）是如何反应和行动的？
-3. 这个模拟揭示了哪些值得关注的未来趋势？
+Telaah gladi resik masa depan ini secara mendalam:
+1. Di bawah kondisi yang telah ditentukan, bagaimana kondisi akhir simulasi?
+2. Bagaimana masing-masing kelompok masyarakat/aktor merespons dan bertindak?
+3. Tren masa depan apa yang paling perlu diwaspadai oleh pengambil kebijakan?
 
-根据预测结果，设计最合适的报告章节结构。
-
-【再次提醒】报告章节数量：最少2个，最多5个，内容要精炼聚焦于核心预测发现。"""
+Rancang struktur bab laporan yang paling tajam dan representatif dalam Bahasa Indonesia.
+Pengingat: Jumlah bab antara 2 hingga 5 bab."""
 
 # ── 章节生成 prompt ──
 
 SECTION_SYSTEM_PROMPT_TEMPLATE = """\
-你是一个「未来预测报告」的撰写专家，正在撰写报告的一个章节。
+Anda adalah analis intelijen strategis senior yang sedang menyusun bab laporan prediksi simulasi.
 
-报告标题: {report_title}
-报告摘要: {report_summary}
-预测场景（模拟需求）: {simulation_requirement}
+Judul Laporan: {report_title}
+Ringkasan Laporan: {report_summary}
+Skenario Prediksi: {simulation_requirement}
 
-当前要撰写的章节: {section_title}
-
-═══════════════════════════════════════════════════════════════
-【核心理念】
-═══════════════════════════════════════════════════════════════
-
-模拟世界是对未来的预演。我们向模拟世界注入了特定条件（模拟需求），
-模拟中Agent的行为和互动，就是对未来人群行为的预测。
-
-你的任务是：
-- 揭示在设定条件下，未来发生了什么
-- 预测各类人群（Agent）是如何反应和行动的
-- 发现值得关注的未来趋势、风险和机会
-
-❌ 不要写成对现实世界现状的分析
-✅ 要聚焦于"未来会怎样"——模拟结果就是预测的未来
+Bab yang sedang disusun: {section_title}
 
 ═══════════════════════════════════════════════════════════════
-【最重要的规则 - 必须遵守】
+【Konsep Utama】
 ═══════════════════════════════════════════════════════════════
 
-1. 【必须调用工具观察模拟世界】
-   - 你正在以「上帝视角」观察未来的预演
-   - 所有内容必须来自模拟世界中发生的事件和Agent言行
-   - 禁止使用你自己的知识来编写报告内容
-   - 每个章节至少调用3次工具（最多5次）来观察模拟的世界，它代表了未来
-
-2. 【必须引用Agent的原始言行】
-   - Agent的发言和行为是对未来人群行为的预测
-   - 在报告中使用引用格式展示这些预测，例如：
-     > "某类人群会表示：原文内容..."
-   - 这些引用是模拟预测的核心证据
-
-3. 【语言一致性 - 引用内容必须翻译为报告语言】
-   - 工具返回的内容可能包含与报告语言不同的表述
-   - 报告必须全部使用与用户指定语言一致的语言撰写
-   - 当你引用工具返回的其他语言内容时，必须将其翻译为报告语言后再写入
-   - 翻译时保持原意不变，确保表述自然通顺
-   - 这一规则同时适用于正文和引用块（> 格式）中的内容
-
-4. 【忠实呈现预测结果】
-   - 报告内容必须反映模拟世界中的代表未来的模拟结果
-   - 不要添加模拟中不存在的信息
-   - 如果某方面信息不足，如实说明
-
-5. 【禁止捏造数据】
-   - ❌ 禁止捏造用户名、引用、统计数字或互动数据
-   - ❌ 禁止在回复中包含 <tool_result> 块 — 只有系统会提供工具结果
-   - ✅ 只能引用真实出现在工具结果中的实体、引用和数据
-   - 如果工具结果中没有相关内容，应如实说明，而非编造
+Simulasi ini adalah proyeksi masa depan. Perilaku dan interaksi Agen dalam simulasi merupakan prediksi atas respon nyata kelompok aktor.
+Tugas Anda:
+- Mengungkap apa yang terjadi dalam simulasi berdasarkan bukti empiris
+- Memetakan respon dan tindakan tiap aktor/Agen
+- Mengidentifikasi titik kritis risiko dan rekomendasi mitigasi strategis
+- WAJIB menulis seluruh isi dan pemikiran dalam Bahasa Indonesia yang formal dan berbobot
 
 ═══════════════════════════════════════════════════════════════
-【⚠️ 格式规范 - 极其重要！】
+【Aturan Utama yang Wajib Dipatuhi】
 ═══════════════════════════════════════════════════════════════
 
-【一个章节 = 最小内容单位】
-- 每个章节是报告的最小分块单位
-- ❌ 禁止在章节内使用任何 Markdown 标题（#、##、###、#### 等）
-- ❌ 禁止在内容开头添加章节主标题
-- ✅ 章节标题由系统自动添加，你只需撰写纯正文内容
-- ✅ 使用**粗体**、段落分隔、引用、列表来组织内容，但不要用标题
+1. 【Wajib Memanggil Alat Investigasi】
+   - Semua analisis harus bersumber dari peristiwa dan perkataan Agen dalam simulasi.
+   - Dilarang mengarang atau menggunakan asumsi di luar data simulasi.
+   - Panggil minimal 3 alat (maksimal 5 kali) per bab untuk mengumpulkan data simulasi.
 
-【正确示例】
-```
-本章节分析了事件的舆论传播态势。通过对模拟数据的深入分析，我们发现...
+2. 【Wajib Mengutip Perkataan Asli Agen】
+   - Pernyataan Agen adalah bukti utama simulasi.
+   - Tampilkan kutipan asli Agen dengan format quote (> "...").
 
-**首发引爆阶段**
+3. 【Konsistensi Bahasa - Seluruh Teks Wajib Bahasa Indonesia】
+   - Jika terdapat teks hasil alat dalam bahasa lain, terjemahkan ke Bahasa Indonesia sebelum dimasukkan ke laporan.
+   - Seluruh narasi, analisis, judul, dan kutipan WAJIB dalam Bahasa Indonesia.
 
-微博作为舆情的第一现场，承担了信息首发的核心功能：
-
-> "微博贡献了68%的首发声量..."
-
-**情绪放大阶段**
-
-抖音平台进一步放大了事件影响力：
-
-- 视觉冲击力强
-- 情绪共鸣度高
-```
-
-【错误示例】
-```
-## 执行摘要          ← 错误！不要添加任何标题
-### 一、首发阶段     ← 错误！不要用###分小节
-#### 1.1 详细分析   ← 错误！不要用####细分
-
-本章节分析了...
-```
+4. 【Aturan Format Tanpa Heading】
+   - JANGAN gunakan heading Markdown (#, ##, ###, ####) di dalam isi bab!
+   - Judul bab otomatis ditambahkan oleh sistem, Anda hanya perlu menulis teks analisis.
+   - Gunakan **teks tebal**, pemisahan paragraf, dan daftar berbutir (- atau 1. 2.) untuk menyusun argumen.
 
 ═══════════════════════════════════════════════════════════════
-【可用检索工具】（每章节调用3-5次）
+【Alat Investigasi yang Tersedia】
 ═══════════════════════════════════════════════════════════════
 
 {tools_description}
 
-【工具使用建议 - 请混合使用不同工具，不要只用一种】
-- insight_forge: 深度洞察分析，自动分解问题并多维度检索事实和关系
-- panorama_search: 广角全景搜索，了解事件全貌、时间线和演变过程
-- quick_search: 快速验证某个具体信息点
-- interview_agents: 采访模拟Agent，获取不同角色的第一人称观点和真实反应
+Panduan Penggunaan Alat:
+- insight_forge: Analisis mendalam multi-dimensi atas fakta dan relasi
+- panorama_search: Pencarian gambaran luas dan riwayat evolusi
+- quick_search: Verifikasi cepat poin fakta tertentu
+- interview_agents: Wawancara langsung dengan figur Agen simulasi
 
 ═══════════════════════════════════════════════════════════════
-【工作流程】
+【Alur Kerja】
 ═══════════════════════════════════════════════════════════════
 
-每次回复你只能做以下两件事之一（不可同时做）：
+Dalam tiap giliran, pilih SALAH SATU:
 
-选项A - 调用工具：
-输出你的思考，然后用以下格式调用一个工具：
+Opsi A - Memanggil Alat:
+Tuliskan penalaran Anda (dalam Bahasa Indonesia), lalu panggil alat:
 <tool_call>
-{{"name": "工具名称", "parameters": {{"参数名": "参数值"}}}}
+{{"name": "nama_alat", "parameters": {{"nama_param": "nilai_param"}}}}
 </tool_call>
-系统会执行工具并把结果返回给你。你不需要也不能自己编写工具返回结果。
 
-选项B - 输出最终内容：
-当你已通过工具获取了足够信息，以 "Final Answer:" 开头输出章节内容。
-
-⚠️ 严格禁止：
-- 禁止在一次回复中同时包含工具调用和 Final Answer
-- 禁止自己编造工具返回结果（Observation），所有工具结果由系统注入
-- 每次回复最多调用一个工具
-
-═══════════════════════════════════════════════════════════════
-【章节内容要求】
-═══════════════════════════════════════════════════════════════
-
-1. 内容必须基于工具检索到的模拟数据
-2. 大量引用原文来展示模拟效果
-3. 使用Markdown格式（但禁止使用标题）：
-   - 使用 **粗体文字** 标记重点（代替子标题）
-   - 使用列表（-或1.2.3.）组织要点
-   - 使用空行分隔不同段落
-   - ❌ 禁止使用 #、##、###、#### 等任何标题语法
-4. 【引用格式规范 - 必须单独成段】
-   引用必须独立成段，前后各有一个空行，不能混在段落中：
-
-   ✅ 正确格式：
-   ```
-   校方的回应被认为缺乏实质内容。
-
-   > "校方的应对模式在瞬息万变的社交媒体环境中显得僵化和迟缓。"
-
-   这一评价反映了公众的普遍不满。
-   ```
-
-   ❌ 错误格式：
-   ```
-   校方的回应被认为缺乏实质内容。> "校方的应对模式..." 这一评价反映了...
-   ```
-5. 保持与其他章节的逻辑连贯性
-6. 【避免重复】仔细阅读下方已完成的章节内容，不要重复描述相同的信息
-7. 【再次强调】不要添加任何标题！用**粗体**代替小节标题"""
+Opsi B - Menyelesaikan Bab:
+Setelah data mencukupi, awali dengan "Final Answer:" lalu tuliskan seluruh narasi bab lengkap dalam Bahasa Indonesia."""
 
 SECTION_USER_PROMPT_TEMPLATE = """\
-已完成的章节内容（请仔细阅读，避免重复）：
+Isi bab yang telah selesai disusun sebelumnya (baca dengan cermat untuk menjaga kontinuitas dan menghindari duplikasi):
 {previous_content}
 
 ═══════════════════════════════════════════════════════════════
-【当前任务】撰写章节: {section_title}
+【Tugas Saat Ini】Susun Bab: {section_title}
 ═══════════════════════════════════════════════════════════════
 
-【重要提醒】
-1. 仔细阅读上方已完成的章节，避免重复相同的内容！
-2. 开始前必须先调用工具获取模拟数据
-3. 请混合使用不同工具，不要只用一种
-4. 报告内容必须来自检索结果，不要使用自己的知识
+【Pengingat Penting】
+1. Baca bab sebelumnya agar narasi mengalir terpadu tanpa mengulang informasi yang sama persis!
+2. Sebelum menulis narasi, WAJIB panggil alat investigasi terlebih dahulu untuk mengambil data empiris simulasi.
+3. Gunakan kombinasi alat yang beragam.
+4. Seluruh isi laporan harus berakar dari hasil pencarian alat, bukan pengetahuan eksternal Anda.
 
-【⚠️ 格式警告 - 必须遵守】
-- ❌ 不要写任何标题（#、##、###、####都不行）
-- ❌ 不要写"{section_title}"作为开头
-- ✅ 章节标题由系统自动添加
-- ✅ 直接写正文，用**粗体**代替小节标题
+【⚠️ Peringatan Format - Wajib Dipatuhi】
+- ❌ JANGAN menulis heading apa pun (#, ##, ###, ####)
+- ❌ JANGAN mengulang judul bab "{section_title}" sebagai baris pembuka
+- ✅ Judul bab ditambahkan secara otomatis oleh sistem antarmuka
+- ✅ Langsung tulis paragraf narasi, gunakan **teks tebal** untuk penekanan sub-topik
+- ✅ Wajib gunakan Bahasa Indonesia yang lugas dan profesional
 
-请开始：
-1. 首先思考（Thought）这个章节需要什么信息
-2. 然后调用工具（Action）获取模拟数据
-3. 收集足够信息后输出 Final Answer（纯正文，无任何标题）"""
+Silakan mulai:
+1. Pikirkan (Thought) informasi data simulasi apa yang dibutuhkan untuk bab ini dalam Bahasa Indonesia
+2. Panggil alat (Action) untuk menarik bukti dari dunia simulasi
+3. Setelah data terkumpul cukup, sajikan Final Answer dalam Bahasa Indonesia tanpa heading!"""
 
 # ── ReACT 循环内消息模板 ──
 
 REACT_OBSERVATION_TEMPLATE = """\
-Observation（检索结果）:
+Observasi (Hasil Pencarian Data):
 
-═══ 工具 {tool_name} 返回 ═══
+═══ Hasil Pengembalian Alat {tool_name} ═══
 {result}
 
 ═══════════════════════════════════════════════════════════════
-已调用工具 {tool_calls_count}/{max_tool_calls} 次（已用: {used_tools_str}）{unused_hint}
-- 如果信息充分：以 "Final Answer:" 开头输出章节内容（必须引用上述原文）
-- 如果需要更多信息：调用一个工具继续检索
+Telah memanggil alat {tool_calls_count}/{max_tool_calls} kali (sudah digunakan: {used_tools_str}){unused_hint}
+- Jika data sudah mencukupi: Awali dengan "Final Answer:" lalu tuliskan seluruh narasi bab (wajib sertakan kutipan bukti simulasi).
+- Jika masih membutuhkan data tambahan: Panggil satu alat lagi untuk melanjutkan investigasi.
 ═══════════════════════════════════════════════════════════════"""
 
 REACT_INSUFFICIENT_TOOLS_MSG = (
-    "【注意】你只调用了{tool_calls_count}次工具，至少需要{min_tool_calls}次。"
-    "请再调用工具获取更多模拟数据，然后再输出 Final Answer。{unused_hint}"
+    "【Perhatian】Anda baru memanggil alat {tool_calls_count} kali, minimal dibutuhkan {min_tool_calls} kali pemanggilan alat."
+    "Silakan panggil alat investigasi untuk mengambil data simulasi lebih lanjut sebelum menyajikan Final Answer. {unused_hint}"
 )
 
 REACT_INSUFFICIENT_TOOLS_MSG_ALT = (
-    "当前只调用了 {tool_calls_count} 次工具，至少需要 {min_tool_calls} 次。"
-    "请调用工具获取模拟数据。{unused_hint}"
+    "Saat ini baru memanggil {tool_calls_count} kali alat, minimal dibutuhkan {min_tool_calls} kali."
+    "Silakan panggil alat investigasi untuk mengambil data simulasi. {unused_hint}"
 )
 
 REACT_TOOL_LIMIT_MSG = (
-    "工具调用次数已达上限（{tool_calls_count}/{max_tool_calls}），不能再调用工具。"
-    '请立即基于已获取的信息，以 "Final Answer:" 开头输出章节内容。'
+    "Batas pemanggilan alat telah tercapai ({tool_calls_count}/{max_tool_calls})."
+    'Berdasarkan data yang telah terkumpul, segera awali dengan "Final Answer:" lalu tuliskan narasi bab secara lengkap dalam Bahasa Indonesia.'
 )
 
-REACT_UNUSED_TOOLS_HINT = "\n💡 你还没有使用过: {unused_list}，建议尝试不同工具获取多角度信息"
+REACT_UNUSED_TOOLS_HINT = "\n💡 Rekomendasi alat yang belum dicoba: {unused_list}"
 
-REACT_FORCE_FINAL_MSG = "已达到工具调用限制，请直接输出 Final Answer: 并生成章节内容。"
+REACT_FORCE_FINAL_MSG = 'Batas pemanggilan alat tercapai. Silakan langsung sajikan narasi bab lengkap diawali dengan "Final Answer:".'
 
 # ── Chat prompt ──
 
 CHAT_SYSTEM_PROMPT_TEMPLATE = """\
-你是一个简洁高效的模拟预测助手。
+Anda adalah asisten cerdas analis prediksi simulasi sosial MiroFish.
 
-【背景】
-预测条件: {simulation_requirement}
+【Latar Belakang Skenario】
+Kondisi Simulasi: {simulation_requirement}
 
-【已生成的分析报告】
+【Laporan Analisis yang Telah Dihasilkan】
 {report_content}
 
-【规则】
-1. 优先基于上述报告内容回答问题
-2. 直接回答问题，避免冗长的思考论述
-3. 仅在报告内容不足以回答时，才调用工具检索更多数据
-4. 回答要简洁、清晰、有条理
+【Ketentuan Respon】
+1. Jawab pertanyaan pengguna secara akurat berdasarkan isi laporan di atas
+2. Gunakan Bahasa Indonesia yang jelas, profesional, dan ramah
+3. Berikan jawaban substantif dan langsung pada inti pertanyaan
+4. Jika isi laporan belum mencukupi, Anda dapat memanggil alat investigasi (maksimal 1-2 kali)
 
-【可用工具】（仅在需要时使用，最多调用1-2次）
-{tools_description}
-
-【工具调用格式】
+【Format Pemanggilan Alat】
 <tool_call>
-{{"name": "工具名称", "parameters": {{"参数名": "参数值"}}}}
+{{"name": "nama_alat", "parameters": {{"nama_param": "nilai_param"}}}}
 </tool_call>
 
-【回答风格】
-- 简洁直接，不要长篇大论
-- 使用 > 格式引用关键内容
-- 优先给出结论，再解释原因"""
+【Gaya Jawaban】
+- Lugas, terstruktur, dan objektif
+- Gunakan format > untuk mengutip temuan kunci
+- Dahulukan kesimpulan utama, baru jelaskan alasannya"""
 
-CHAT_OBSERVATION_SUFFIX = "\n\n请简洁回答问题。"
+CHAT_OBSERVATION_SUFFIX = "\n\nSilakan jawab pertanyaan secara ringkas dan tepat."
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -1764,6 +1663,14 @@ class ReportAgent:
             
             # 保存最终报告
             ReportManager.save_report(report)
+
+            # Generate and cache dynamic Executive Summary (Eksum)
+            try:
+                from .eksum_service import generate_executive_summary
+                generate_executive_summary(report_id)
+            except Exception as ek_err:
+                logger.warning(f"Gagal pre-generate eksum: {ek_err}")
+
             ReportManager.update_progress(
                 report_id, "completed", 100, t('progress.reportComplete'),
                 completed_sections=completed_section_titles

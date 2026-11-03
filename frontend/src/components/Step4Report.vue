@@ -608,30 +608,30 @@ const parseInsightForge = (text) => {
   
   try {
     // 提取分析问题
-    const queryMatch = text.match(/分析问题:\s*(.+?)(?:\n|$)/)
+    const queryMatch = text.match(/(?:分析问题|Kueri Analisis|Pertanyaan Analisis):\s*(.+?)(?:\n|$)/i)
     if (queryMatch) result.query = queryMatch[1].trim()
     
     // 提取预测场景
-    const reqMatch = text.match(/预测场景:\s*(.+?)(?:\n|$)/)
+    const reqMatch = text.match(/(?:预测场景|Skenario Prediksi|Skenario Simulasi):\s*(.+?)(?:\n|$)/i)
     if (reqMatch) result.simulationRequirement = reqMatch[1].trim()
     
-    // 提取统计数据 - 匹配"相关预测事实: X条"格式
-    const factMatch = text.match(/相关预测事实:\s*(\d+)/)
-    const entityMatch = text.match(/涉及实体:\s*(\d+)/)
-    const relMatch = text.match(/关系链:\s*(\d+)/)
+    // 提取统计数据 - 匹配格式
+    const factMatch = text.match(/(?:相关预测事实|Fakta Terkait|Fakta Prediksi Terkait):\s*(\d+)/i)
+    const entityMatch = text.match(/(?:涉及实体|Entitas Terkait):\s*(\d+)/i)
+    const relMatch = text.match(/(?:关系链|Rantai Relasi):\s*(\d+)/i)
     if (factMatch) result.stats.facts = parseInt(factMatch[1])
     if (entityMatch) result.stats.entities = parseInt(entityMatch[1])
     if (relMatch) result.stats.relationships = parseInt(relMatch[1])
     
     // 提取子问题 - 完整提取，不限制数量
-    const subQSection = text.match(/### 分析的子问题\n([\s\S]*?)(?=\n###|$)/)
+    const subQSection = text.match(/###\s*(?:分析的子问题|Sub-pertanyaan Analisis)[\s\S]*?\n([\s\S]*?)(?=\n###|$)/i)
     if (subQSection) {
       const lines = subQSection[1].split('\n').filter(l => l.match(/^\d+\./))
       result.subQueries = lines.map(l => l.replace(/^\d+\.\s*/, '').trim()).filter(Boolean)
     }
     
     // 提取关键事实 - 完整提取，不限制数量
-    const factsSection = text.match(/### 【关键事实】[\s\S]*?\n([\s\S]*?)(?=\n###|$)/)
+    const factsSection = text.match(/###\s*(?:【关键事实】|【Fakta Kunci】|Fakta Kunci)[\s\S]*?\n([\s\S]*?)(?=\n###|$)/i)
     if (factsSection) {
       const lines = factsSection[1].split('\n').filter(l => l.match(/^\d+\./))
       result.facts = lines.map(l => {
@@ -641,15 +641,15 @@ const parseInsightForge = (text) => {
     }
     
     // 提取核心实体 - 完整提取，包含摘要和相关事实数
-    const entitySection = text.match(/### 【核心实体】\n([\s\S]*?)(?=\n###|$)/)
+    const entitySection = text.match(/###\s*(?:【核心实体】|【Entitas Utama】|Entitas Utama)[\s\S]*?\n([\s\S]*?)(?=\n###|$)/i)
     if (entitySection) {
       const entityText = entitySection[1]
       // 按 "- **" 分割实体块
       const entityBlocks = entityText.split(/\n(?=- \*\*)/).filter(b => b.trim().startsWith('- **'))
       result.entities = entityBlocks.map(block => {
         const nameMatch = block.match(/^-\s*\*\*(.+?)\*\*\s*\((.+?)\)/)
-        const summaryMatch = block.match(/摘要:\s*"?(.+?)"?(?:\n|$)/)
-        const relatedMatch = block.match(/相关事实:\s*(\d+)/)
+        const summaryMatch = block.match(/(?:摘要|Ringkasan):\s*"?(.+?)"?(?:\n|$)/i)
+        const relatedMatch = block.match(/(?:相关事实|Fakta Terkait):\s*(\d+)/i)
         return {
           name: nameMatch ? nameMatch[1].trim() : '',
           type: nameMatch ? nameMatch[2].trim() : '',
@@ -660,7 +660,7 @@ const parseInsightForge = (text) => {
     }
     
     // 提取关系链 - 完整提取，不限制数量
-    const relSection = text.match(/### 【关系链】\n([\s\S]*?)(?=\n###|$)/)
+    const relSection = text.match(/###\s*(?:【关系链】|【Rantai Relasi】|Rantai Relasi)[\s\S]*?\n([\s\S]*?)(?=\n###|$)/i)
     if (relSection) {
       const lines = relSection[1].split('\n').filter(l => l.trim().startsWith('-'))
       result.relations = lines.map(l => {
@@ -689,21 +689,21 @@ const parsePanorama = (text) => {
   
   try {
     // 提取查询
-    const queryMatch = text.match(/查询:\s*(.+?)(?:\n|$)/)
+    const queryMatch = text.match(/(?:查询|Kueri):\s*(.+?)(?:\n|$)/i)
     if (queryMatch) result.query = queryMatch[1].trim()
     
     // 提取统计数据
-    const nodesMatch = text.match(/总节点数:\s*(\d+)/)
-    const edgesMatch = text.match(/总边数:\s*(\d+)/)
-    const activeMatch = text.match(/当前有效事实:\s*(\d+)/)
-    const histMatch = text.match(/历史\/过期事实:\s*(\d+)/)
+    const nodesMatch = text.match(/(?:总节点数|Total Simpul):\s*(\d+)/i)
+    const edgesMatch = text.match(/(?:总边数|Total Relasi):\s*(\d+)/i)
+    const activeMatch = text.match(/(?:当前有效事实|Fakta Aktif Saat Ini):\s*(\d+)/i)
+    const histMatch = text.match(/(?:历史\/过期事实|Fakta Riwayat\/Historis):\s*(\d+)/i)
     if (nodesMatch) result.stats.nodes = parseInt(nodesMatch[1])
     if (edgesMatch) result.stats.edges = parseInt(edgesMatch[1])
     if (activeMatch) result.stats.activeFacts = parseInt(activeMatch[1])
     if (histMatch) result.stats.historicalFacts = parseInt(histMatch[1])
     
     // 提取当前有效事实 - 完整提取，不限制数量
-    const activeSection = text.match(/### 【当前有效事实】[\s\S]*?\n([\s\S]*?)(?=\n###|$)/)
+    const activeSection = text.match(/###\s*(?:【当前有效事实】|【Fakta Aktif Saat Ini】)[\s\S]*?\n([\s\S]*?)(?=\n###|$)/i)
     if (activeSection) {
       const lines = activeSection[1].split('\n').filter(l => l.match(/^\d+\./))
       result.activeFacts = lines.map(l => {
@@ -714,7 +714,7 @@ const parsePanorama = (text) => {
     }
     
     // 提取历史/过期事实 - 完整提取，不限制数量
-    const histSection = text.match(/### 【历史\/过期事实】[\s\S]*?\n([\s\S]*?)(?=\n###|$)/)
+    const histSection = text.match(/###\s*(?:【历史\/过期事实】|【Fakta Riwayat\/Historis】)[\s\S]*?\n([\s\S]*?)(?=\n###|$)/i)
     if (histSection) {
       const lines = histSection[1].split('\n').filter(l => l.match(/^\d+\./))
       result.historicalFacts = lines.map(l => {
@@ -724,7 +724,7 @@ const parsePanorama = (text) => {
     }
     
     // 提取涉及实体 - 完整提取，不限制数量
-    const entitySection = text.match(/### 【涉及实体】\n([\s\S]*?)(?=\n###|$)/)
+    const entitySection = text.match(/###\s*(?:【涉及实体】|【Entitas Terkait】)[\s\S]*?\n([\s\S]*?)(?=\n###|$)/i)
     if (entitySection) {
       const lines = entitySection[1].split('\n').filter(l => l.trim().startsWith('-'))
       result.entities = lines.map(l => {
@@ -753,11 +753,11 @@ const parseInterview = (text) => {
   
   try {
     // 提取采访主题
-    const topicMatch = text.match(/\*\*采访主题:\*\*\s*(.+?)(?:\n|$)/)
+    const topicMatch = text.match(/\*\*(?:采访主题|Topik Wawancara):\*\*\s*(.+?)(?:\n|$)/i)
     if (topicMatch) result.topic = topicMatch[1].trim()
     
     // 提取采访人数（如 "5 / 9 位模拟Agent"）
-    const countMatch = text.match(/\*\*采访人数:\*\*\s*(\d+)\s*\/\s*(\d+)/)
+    const countMatch = text.match(/\*\*(?:采访人数|Jumlah Narasumber):\*\*\s*(\d+)\s*\/\s*(\d+)/i)
     if (countMatch) {
       result.successCount = parseInt(countMatch[1])
       result.totalCount = parseInt(countMatch[2])
@@ -765,7 +765,7 @@ const parseInterview = (text) => {
     }
     
     // 提取采访对象选择理由
-    const reasonMatch = text.match(/### 采访对象选择理由\n([\s\S]*?)(?=\n---\n|\n### 采访实录)/)
+    const reasonMatch = text.match(/###\s*(?:采访对象选择理由|Alasan Pemilihan Narasumber)\n([\s\S]*?)(?=\n---\n|\n###\s*(?:采访实录|Transkrip Wawancara))/i)
     if (reasonMatch) {
       result.selectionReason = reasonMatch[1].trim()
     }
@@ -837,7 +837,7 @@ const parseInterview = (text) => {
     const individualReasons = parseIndividualReasons(result.selectionReason)
     
     // 提取每个采访记录
-    const interviewBlocks = text.split(/#### 采访 #\d+:/).slice(1)
+    const interviewBlocks = text.split(/####\s*(?:采访|Wawancara)\s*#\d+:/i).slice(1)
     
     interviewBlocks.forEach((block, index) => {
       const interview = {
@@ -867,13 +867,13 @@ const parseInterview = (text) => {
       }
       
       // 提取简介
-      const bioMatch = block.match(/_简介:\s*([\s\S]*?)_\n/)
+      const bioMatch = block.match(/_(?:简介|Profil):\s*([\s\S]*?)_\n/i)
       if (bioMatch) {
         interview.bio = bioMatch[1].trim().replace(/\.\.\.$/, '...')
       }
       
       // 提取问题列表
-      const qMatch = block.match(/\*\*Q:\*\*\s*([\s\S]*?)(?=\n\n\*\*A:\*\*|\*\*A:\*\*)/)
+      const qMatch = block.match(/\*\*(?:Q|T|Tanya):\*\*\s*([\s\S]*?)(?=\n\n\*\*(?:A|J|Jawab):\*\*|\*\*(?:A|J|Jawab):\*\*)/i)
       if (qMatch) {
         const qText = qMatch[1].trim()
         // 按数字编号分割问题
@@ -890,13 +890,13 @@ const parseInterview = (text) => {
       }
       
       // 提取回答 - 分Twitter和Reddit
-      const answerMatch = block.match(/\*\*A:\*\*\s*([\s\S]*?)(?=\*\*关键引言|$)/)
+      const answerMatch = block.match(/\*\*(?:A|J|Jawab):\*\*\s*([\s\S]*?)(?=\*\*(?:关键引言|Kutipan Kunci)|$)/i)
       if (answerMatch) {
         const answerText = answerMatch[1].trim()
         
         // 分离Twitter和Reddit回答
-        const twitterMatch = answerText.match(/【Twitter平台回答】\n?([\s\S]*?)(?=【Reddit平台回答】|$)/)
-        const redditMatch = answerText.match(/【Reddit平台回答】\n?([\s\S]*?)$/)
+        const twitterMatch = answerText.match(/【(?:Twitter平台回答|Jawaban Platform Twitter)】\n?([\s\S]*?)(?=【(?:Reddit平台回答|Jawaban Platform Reddit)】|$)/i)
+        const redditMatch = answerText.match(/【(?:Reddit平台回答|Jawaban Platform Reddit)】\n?([\s\S]*?)$/i)
         
         if (twitterMatch) {
           interview.twitterAnswer = twitterMatch[1].trim()
@@ -905,18 +905,16 @@ const parseInterview = (text) => {
           interview.redditAnswer = redditMatch[1].trim()
         }
         
-        // 平台回退逻辑（兼容旧格式：只有一个平台标记的情况）
+        // 平台回退逻辑
         if (!twitterMatch && redditMatch) {
-          // 只有 Reddit 回答，仅在非占位文本时复制为默认显示
-          if (interview.redditAnswer && interview.redditAnswer !== '（该平台未获得回复）') {
+          if (interview.redditAnswer && !interview.redditAnswer.includes('未获得回复') && !interview.redditAnswer.includes('Tidak ada jawaban')) {
             interview.twitterAnswer = interview.redditAnswer
           }
         } else if (twitterMatch && !redditMatch) {
-          if (interview.twitterAnswer && interview.twitterAnswer !== '（该平台未获得回复）') {
+          if (interview.twitterAnswer && !interview.twitterAnswer.includes('未获得回复') && !interview.twitterAnswer.includes('Tidak ada jawaban')) {
             interview.redditAnswer = interview.twitterAnswer
           }
         } else if (!twitterMatch && !redditMatch) {
-          // 没有分平台标记（极旧格式），整体作为回答
           interview.twitterAnswer = answerText
         }
       }
@@ -966,15 +964,15 @@ const parseQuickSearch = (text) => {
   
   try {
     // 提取搜索查询
-    const queryMatch = text.match(/搜索查询:\s*(.+?)(?:\n|$)/)
+    const queryMatch = text.match(/(?:搜索查询|Kueri Pencarian):\s*(.+?)(?:\n|$)/i)
     if (queryMatch) result.query = queryMatch[1].trim()
     
     // 提取结果数量
-    const countMatch = text.match(/找到\s*(\d+)\s*条/)
+    const countMatch = text.match(/(?:找到|Ditemukan)\s*(\d+)\s*(?:条|informasi)/i)
     if (countMatch) result.count = parseInt(countMatch[1])
     
     // 提取相关事实 - 完整提取，不限制数量
-    const factsSection = text.match(/### 相关事实:\n([\s\S]*)$/)
+    const factsSection = text.match(/###\s*(?:相关事实|Fakta Terkait):?\n([\s\S]*)$/i)
     if (factsSection) {
       const lines = factsSection[1].split('\n').filter(l => l.match(/^\d+\./))
       result.facts = lines.map(l => l.replace(/^\d+\.\s*/, '').trim()).filter(Boolean)
